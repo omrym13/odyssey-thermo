@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>יחידה 1 · מושגים בסיסיים ועבודה — מצגת</title>
+<style>
+/* ============ פלטת הבית — תואמת את המערכים המודפסים ============ */
+:root{
+  --navy:#1F4E79; --terra:#C0553A; --parch:#FBF8F1; --gold:#D9A441;
+  --green:#2E6F40; --ink:#1c2733; --panel:#ffffff; --muted:#5a6a7a;
+  --line:#DDE3EC; --grid:#c9d4de;
+  --accent:var(--navy);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  font-family:"Heebo","Assistant","Arial Hebrew",system-ui,sans-serif;
+  background:var(--parch); color:var(--ink); overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ============ מעטפת ============ */
+#deck{position:fixed; inset:0; display:flex; flex-direction:column}
+header#bar{
+  display:flex; align-items:center; gap:14px; padding:10px 22px;
+  background:var(--navy); color:#fff; flex:0 0 auto; z-index:5;
+}
+header#bar .t{font-weight:800; font-size:17px; letter-spacing:.2px}
+header#bar .part-chip{
+  background:rgba(255,255,255,.14); border-radius:999px; padding:3px 14px;
+  font-size:13.5px; font-weight:700;
+}
+header#bar .sp{flex:1}
+header#bar a.simlink, header#bar button{
+  background:var(--gold); color:var(--navy); border:none; border-radius:9px;
+  padding:7px 14px; font-family:inherit; font-weight:800; font-size:13.5px;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+}
+header#bar button.ghost{background:rgba(255,255,255,.14); color:#fff}
+#stage{flex:1; position:relative; overflow:hidden}
+/* ============ שקף ============ */
+.slide{
+  position:absolute; inset:0; padding:34px clamp(28px,5vw,84px) 64px;
+  display:none; flex-direction:column; overflow:auto;
+}
+.slide.on{display:flex; animation:fadein .28s ease}
+@keyframes fadein{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.slide .eyebrow{
+  color:var(--accent); font-weight:800; font-size:clamp(14px,1.5vw,17px);
+  letter-spacing:.4px; margin-bottom:4px;
+}
+.slide h2{
+  font-size:clamp(26px,3.6vw,44px); font-weight:900; color:var(--navy);
+  line-height:1.15; margin-bottom:18px;
+}
+.slide h2 .thin{font-weight:400; color:var(--muted)}
+.lead{font-size:clamp(17px,1.9vw,23px); line-height:1.55; max-width:1050px}
+.cols{display:flex; gap:clamp(18px,3vw,44px); align-items:flex-start; flex:1; min-height:0}
+.cols>.txt{flex:1.15; min-width:0}
+.cols>.fig{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+.cols>.fig svg{width:100%; height:auto; max-height:56vh}
+/* ============ שלבים ============ */
+.step{visibility:hidden}
+.step.on{visibility:visible; animation:stepin .3s ease}
+@keyframes stepin{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+svg .step{opacity:0; transition:opacity .3s ease}
+svg .step.on{opacity:1; animation:none; visibility:visible}
+/* ============ קופסאות התוכן — כמו במערך המודפס ============ */
+.box{border-radius:14px; padding:16px 20px; margin:12px 0; font-size:clamp(15.5px,1.7vw,20px); line-height:1.55}
+.box b.tag{display:block; font-size:.86em; margin-bottom:6px; font-weight:900}
+.box.idea{background:#e9f0e9; border-inline-start:5px solid var(--green)}
+.box.idea b.tag{color:var(--green)}
+.box.mistake{background:#f6e7e2; border-inline-start:5px solid var(--terra)}
+.box.mistake b.tag{color:var(--terra)}
+.box.think{background:#efe9d8; border-inline-start:5px solid var(--gold)}
+.box.think b.tag{color:#8a6f1a}
+.box.chem{background:#e7edf3; border-inline-start:5px solid var(--navy)}
+.box.chem b.tag{color:var(--navy)}
+/* ============ מתמטיקה — איי LTR, בלי ספריות ============ */
+.m{direction:ltr; unicode-bidi:isolate; display:inline-block;
+   font-family:"STIX Two Math","Cambria Math",Georgia,"Times New Roman",serif;
+   font-size:1.12em; white-space:nowrap}
+/* the integral sign — the fallback serif glyph is short and slanted; scale it to a real
+   math integral and keep the baseline steady. */
+/* ---- integration-by-parts formula banner + colour map for u and dv ---- */
+.pbf{display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+   gap:10px 18px; border:2px solid var(--navy); border-radius:14px;
+   background:#fff; padding:7px 18px; margin:6px auto 8px;
+   max-width:min(97%,980px)}
+.pbf-lab{font-weight:800; color:var(--navy); background:var(--parch);
+   border-radius:999px; padding:3px 13px; white-space:nowrap;
+   font-size:clamp(12px,1.15vw,15px)}
+.pbf-math{direction:ltr; font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+   font-size:clamp(19px,2.15vw,27px); line-height:1.45; white-space:nowrap}
+.pbf-key{font-size:clamp(11px,1.05vw,13.5px); color:var(--muted,#6B7280);
+   line-height:1.35}
+.pu{color:#B8482C; font-weight:600}
+.pv{color:#2E6F40; font-weight:600}
+/* ---- display integral / sigma: drawn as SVG, so the shape and the position of
+   the limits are identical on every device and depend on no installed font ---- */
+.intg{display:inline-flex; align-items:stretch; direction:ltr;
+   height:1.85em; vertical-align:-.645em; margin-inline-end:.10em}
+.intg > svg{height:100%; width:auto; display:block; fill:currentColor; overflow:visible}
+.intg.bare{margin-inline-end:.16em}
+.intg > .lims{display:flex; flex-direction:column; justify-content:space-between;
+   height:calc(100% + .88em); align-self:center; margin-inline-start:.05em;
+   margin-inline-end:.06em; line-height:1}
+.intg > .lims i{font-size:.55em; display:block; font-style:normal; white-space:nowrap}
+/* הגבול התחתון נצמד לוו התחתון של סימן האינטגרל, שנוטה שמאלה — כמו b שנצמד לוו העליון */
+.intg > .lims i.d{transform:translateX(-1.30em)}
+/* sigma: limits centred directly above and below the symbol */
+.sumg{display:inline-block; position:relative; direction:ltr;
+   height:1.30em; width:1.00em; vertical-align:-.37em; margin-inline:.62em}
+.sumg > svg{position:absolute; left:0; top:0; height:100%; width:auto;
+   display:block; fill:currentColor}
+.sumg > i{position:absolute; left:50%; transform:translateX(-50%);
+   font-size:.50em; font-style:normal; white-space:nowrap; line-height:1}
+.sumg > i:first-child{bottom:calc(100% + .10em)}
+.sumg > i:last-child{top:calc(100% + .10em)}
+/* evaluation bracket: brackets drawn with borders so they scale, limits spread over them */
+.evb{display:inline-flex; align-items:center; direction:ltr; height:1.45em;
+   vertical-align:-.42em; margin-inline-end:.06em}
+.evb.tall{height:2.30em; vertical-align:-.86em}
+.evb > .eb{width:.20em; height:100%; border:.055em solid currentColor;
+   box-sizing:border-box; flex:0 0 auto}
+.evb > .eb.l{border-right:0}
+.evb > .eb.r{border-left:0}
+.evb > .ebc{display:flex; align-items:center; height:100%; padding:0 .18em}
+.evb > .lims{display:flex; flex-direction:column; justify-content:space-between;
+   height:calc(100% + .72em); align-self:center; margin-inline-start:.07em;
+   margin-inline-end:.05em; line-height:1}
+.evb > .lims i{font-size:.55em; font-style:normal; display:block; white-space:nowrap}
+.mline{direction:ltr; display:block; text-align:center; margin:10px auto;
+   font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+   font-size:clamp(19px,2.3vw,27px); line-height:1.7}
+.mrow{direction:ltr; display:flex; align-items:center; justify-content:center; gap:.35em; flex-wrap:wrap}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; direction:ltr; line-height:1.15}
+.frac>.nu{border-bottom:1.6px solid currentColor; padding:0 .3em}
+.frac>.de{padding:0 .3em}
+.sqrt{display:inline-block; direction:ltr; white-space:nowrap; line-height:1.25}
+.sqrt::before{content:"√"; font-size:1.02em}
+.sqrt>.rad{display:inline-block; border-top:1.5px solid currentColor;
+  padding:.1em .28em 0 .16em; margin-left:-0.29em; line-height:1.1}
+.cases{display:inline-flex; align-items:center; direction:ltr}
+.cases::before{content:"{"; font-size:2.4em; font-weight:300; line-height:1; margin-inline-end:.15em}
+.cases table{border-collapse:collapse}
+.cases td{padding:.06em .5em; text-align:left}
+.hl{background:#f3e7c3; border-radius:6px; padding:0 .28em; box-decoration-break:clone}
+ol.chain{margin:8px 8px 10px 0; padding-inline-start:22px; line-height:1.65; font-size:clamp(14px,1.28vw,18px)}
+ol.chain li{margin-bottom:3px}
+.res{color:var(--green); font-weight:700}
+.why{display:block; direction:rtl; text-align:right; unicode-bidi:isolate;
+     margin:4px 0 10px; padding-inline-start:10px;
+     border-inline-start:3px solid var(--gold);
+     font-size:clamp(13px,1.12vw,16px); font-weight:400; line-height:1.5;
+     color:var(--muted); font-family:"Heebo","Assistant",system-ui,sans-serif}
+.why b{color:var(--navy); font-weight:700}
+.warnc{color:var(--terra); font-weight:700}
+/* ============ רשימות ותקצירים ============ */
+ul.big{list-style:none; margin-top:6px}
+ul.big li{
+  position:relative; padding:9px 34px 9px 6px; font-size:clamp(16px,1.85vw,22px); line-height:1.5;
+}
+ul.big li::before{content:"◆"; position:absolute; right:6px; top:11px; color:var(--gold); font-size:.8em}
+ul.check li::before{content:"✓"; color:var(--green); font-weight:900; font-size:1em; top:9px}
+/* ============ באנר סימולציה ============ */
+.simbanner{
+  display:flex; align-items:center; gap:18px; background:var(--navy); color:#fff;
+  border-radius:16px; padding:18px 24px; margin-top:18px; text-decoration:none;
+  box-shadow:0 6px 20px rgba(15,46,76,.25);
+}
+.simbanner .ic{font-size:34px}
+.simbanner .tx b{display:block; font-size:clamp(16px,1.9vw,21px)}
+.simbanner .tx span{font-size:clamp(13px,1.4vw,16px); opacity:.85}
+.simbanner .go{margin-inline-start:auto; background:var(--gold); color:var(--navy);
+  border-radius:10px; padding:9px 18px; font-weight:900; white-space:nowrap}
+/* ============ שקף שער-חלק ============ */
+.slide.divider{justify-content:center; align-items:center; text-align:center}
+.slide.divider .big-num{
+  width:92px; height:92px; border-radius:26px; display:flex; align-items:center; justify-content:center;
+  font-size:44px; font-weight:900; color:#fff; background:var(--accent); margin-bottom:20px;
+}
+.slide.divider h2{font-size:clamp(34px,5vw,58px)}
+.slide.divider .sub{font-size:clamp(17px,2vw,24px); color:var(--muted); max-width:820px}
+/* ============ שער ראשי ============ */
+.slide.title{justify-content:center; text-align:center; background:
+  linear-gradient(160deg,#1F4E79 0%, #24608f 60%, #2A9D8F 100%); color:#fff}
+.slide.title .eyebrow{color:var(--gold)}
+.slide.title h1{font-size:clamp(38px,6vw,72px); font-weight:900; line-height:1.12; margin:8px 0 16px}
+.slide.title .topics, .slide.divider .topics{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:18px 0}
+.slide.title .topics span, .slide.divider .topics span{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+  border-radius:999px; padding:7px 18px; font-size:clamp(13px,1.5vw,17px)}
+.slide.title .who{margin-top:26px; font-size:clamp(15px,1.7vw,19px); opacity:.9}
+/* ============ סרגל תחתון ============ */
+#foot{
+  position:fixed; bottom:0; right:0; left:0; height:44px; display:flex; align-items:center;
+  gap:14px; padding:0 20px; background:rgba(15,46,76,.94); color:#fff; font-size:13px; z-index:6;
+}
+#foot #prog{flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.18); overflow:hidden}
+#foot #prog>div{height:100%; width:0; background:var(--gold); transition:width .25s ease}
+#foot .cnt{font-variant-numeric:tabular-nums; direction:ltr}
+#foot .hint{opacity:.75}
+#foot button{background:none; border:1px solid rgba(255,255,255,.35); color:#fff; border-radius:7px;
+  padding:3px 12px; font-family:inherit; font-size:12.5px; cursor:pointer}
+/* ============ מפת שקפים ============ */
+#toc{position:fixed; inset:0; background:rgba(15,25,35,.6); display:none; z-index:20;
+  align-items:center; justify-content:center}
+#toc.on{display:flex}
+#toc .card{background:var(--panel); border-radius:18px; padding:26px 30px; width:min(860px,92vw);
+  max-height:84vh; overflow:auto}
+#toc h3{color:var(--navy); margin-bottom:14px; font-size:22px}
+#toc .grp{margin-bottom:10px}
+#toc .grp b{display:block; color:var(--muted); font-size:13px; margin:8px 0 4px}
+#toc button.jump{display:inline-block; margin:3px; background:#eef2f6; border:1px solid var(--grid);
+  border-radius:8px; padding:6px 12px; font-family:inherit; font-size:13.5px; cursor:pointer; color:var(--ink)}
+#toc button.jump:hover{background:var(--gold); color:var(--navy)}
+/* גרפים */
+svg text{font-family:"Heebo",system-ui,sans-serif; direction:ltr; unicode-bidi:plaintext;
+  paint-order:stroke fill; stroke:#FBF8F1; stroke-width:4.5px;
+  stroke-linejoin:round; stroke-linecap:round}
+svg .ax{stroke:var(--navy); stroke-width:2.4}
+svg .zero{font-size:12px; fill:var(--muted)}
+svg .gridl{stroke:var(--grid); stroke-width:.7}
+svg .c1{stroke:var(--navy); stroke-width:3; fill:none}
+svg .c2{stroke:var(--terra); stroke-width:3; fill:none}
+svg .c3{stroke:var(--green); stroke-width:3; fill:none}
+svg .cg{stroke:#9aa7b4; stroke-width:2.2; fill:none; stroke-dasharray:6 5}
+svg .cgold{stroke:var(--gold); stroke-width:2.4; fill:none; stroke-dasharray:7 5}
+svg .lbl{font-size:15px; font-weight:700; fill:var(--navy)}
+svg .num{font-size:13.5px; fill:var(--ink)}
+@media (max-width:760px){
+  .cols{flex-direction:column}
+  .slide{padding:20px 18px 60px}
+}
+.cols{flex:0 0 auto}
+
+/* ---- תוספות מפגש 6 ---- */
+/* בידוד ביד״י לביטוי מתמטי קצר בתוך פסקה עברית.
+   בלי זה — ערך מוחלט, מינוס וסוגריים מתהפכים. */
+.ltr{direction:ltr; unicode-bidi:isolate; display:inline-block}
+ul.idlist{margin:6px 0 10px; padding-inline-start:20px; line-height:1.75}
+ul.idlist li{margin-bottom:7px}
+.tblwrap{overflow-x:auto; margin:8px 0}
+table.rules{border-collapse:collapse; width:100%; font-size:14.5px;
+  direction:ltr; unicode-bidi:isolate}
+table.rules th,table.rules td{border:1px solid var(--grid); padding:6px 9px; text-align:center}
+table.rules th{background:#eef2f6; color:var(--muted); font-weight:800; font-size:13px}
+table.rules td.he{direction:rtl; unicode-bidi:isolate; font-size:13.5px; color:var(--muted)}
+table.rules td.pos{color:var(--green); font-weight:800}
+table.rules td.neg{color:var(--terra); font-weight:800}
+.cap{width:100%; text-align:right; font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.6}
+.txt.wide{max-width:none}
+
+/* ---- קו השבר לא נוגע בביטוי שמעליו ---- */
+/* בלי הרווח הזה הקו האנכי של |x| מתלכד עם קו השבר, והערך המוחלט נקרא כמו מסגרת */
+.frac>.nu{padding:0 .34em 2.5px}
+.frac>.de{padding:2.5px .34em 0}
+
+/* ---- כרטיסי שלושה ---- */
+.cards3{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(10px,1.6vw,20px);
+  margin:10px 0 4px}
+.cards3 .card{background:var(--panel); border:1.5px solid var(--line); border-radius:14px;
+  padding:12px 14px 14px; border-top:5px solid var(--accent)}
+.cards3 .card h4{color:var(--navy); font-size:clamp(15px,1.7vw,19px); margin-bottom:6px;
+  font-weight:900; direction:ltr; text-align:center}
+.cards3 .card .ln{text-align:center; font-size:clamp(13px,1.4vw,16px); line-height:1.8; margin:2px 0}
+.cards3 .card .fin{background:#f3e7c3; border-radius:8px; padding:5px 8px; margin-top:7px;
+  font-weight:800; text-align:center}
+@media (max-width:900px){ .cards3{grid-template-columns:1fr} }
+/* ---- רצועת התחנה: מה בודקים · הבדיקה · המסקנה ---- */
+.chainstrip{background:var(--panel); border:1.5px solid var(--line);
+  border-right:5px solid var(--navy); border-radius:12px;
+  padding:6px 12px 8px; margin:10px 0 12px}
+.chainstrip .crow{display:flex; align-items:center; gap:12px; padding:6px 0; flex-wrap:wrap}
+.chainstrip .crow + .crow{border-top:1px dashed var(--line)}
+.chainstrip .clab{flex:0 0 auto; font-size:clamp(11px,1.1vw,12.5px); font-weight:800;
+  color:#fff; border-radius:999px; padding:3px 11px; white-space:nowrap; background:var(--muted)}
+.chainstrip .clab.chk{background:var(--navy)}
+.chainstrip .clab.side{background:var(--terra)}
+.chainstrip .clab.fin{background:var(--green)}
+.chainstrip .cmath{flex:0 1 auto; direction:ltr; text-align:left;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(14px,1.5vw,17.5px); line-height:1.7; color:var(--ink)}
+.chainstrip .cmath.wide{flex:1 1 auto; text-align:center}
+.chainstrip .cd{flex:1 1 auto; direction:ltr; text-align:left; color:var(--muted);
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(12.5px,1.35vw,16px)}
+/* טקסט עברי ברצועה — חייב RTL. בלי זה סדר המילים נשבר, ו-lint_rtl נכשל. */
+.chainstrip .cd.he{direction:rtl; text-align:right; unicode-bidi:isolate;
+  font-family:"Heebo",system-ui,sans-serif; font-size:clamp(12px,1.28vw,14.5px)}
+.chainstrip .cmath.he{direction:rtl; text-align:right; unicode-bidi:isolate;
+  font-family:"Heebo",system-ui,sans-serif; font-size:clamp(13px,1.4vw,16px);
+  color:var(--ink)}
+.chainstrip .cmath.wide.he{text-align:center}
+.chainstrip .crow.res{background:#f7f3e6; border-radius:8px; margin-top:4px; padding:8px 10px}
+.chainstrip .crow.res .cmath{color:var(--green); font-weight:800}
+.chainstrip .cmath sub,.chainstrip .cd sub{font-size:.62em; vertical-align:-.25em}
+.chainstrip .cmath sup,.chainstrip .cd sup{font-size:.68em}
+@media (max-width:900px){ .chainstrip .crow{flex-direction:column; align-items:stretch; gap:4px}
+  .chainstrip .cmath,.chainstrip .cd{text-align:center}
+  .chainstrip .cd.he{text-align:right} }
+/* ---- טבלת הסימנים ---- */
+.sgt{background:var(--panel); border:1.5px solid var(--line);
+  border-right:5px solid var(--gold); border-radius:12px;
+  padding:8px 12px 6px; margin:10px 0 12px; direction:ltr}
+.sgt .sgrow{display:flex; align-items:stretch; gap:10px}
+.sgt .sgrow + .sgrow{border-top:1px solid var(--line)}
+.sgt .slab{flex:0 0 clamp(50px,6vw,74px); display:flex; align-items:center;
+  justify-content:center; font-weight:800; color:var(--navy);
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(13px,1.45vw,17px); direction:ltr}
+.sgt .slab.he{direction:rtl; unicode-bidi:isolate; font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.2vw,14px); color:var(--muted)}
+.sgt .sg{flex:1 1 auto; display:grid; align-items:center}
+.sgt .sg>span{display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:6px 2px; min-height:34px; line-height:1.35;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(13.5px,1.5vw,18px); color:var(--ink)}
+.sgt .sg>span.he{direction:rtl; unicode-bidi:isolate; font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.22vw,14.5px); font-weight:700}
+.sgt .sg>span.mk{background:#f3ece0; font-weight:800; color:var(--terra);
+  border-left:1px dashed var(--line); border-right:1px dashed var(--line)}
+.sgt .sgrow.axis .sg>span.mk{color:var(--navy); font-size:clamp(13px,1.4vw,16.5px)}
+.sgt .sgrow.axis{border-bottom:2px solid var(--line)}
+.sgt .sgcap{direction:rtl; text-align:right; color:var(--muted); font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.2vw,14px); padding:6px 2px 2px; border-top:1px dashed var(--line);
+  margin-top:2px; line-height:1.6}
+@media (max-width:760px){ .sgt .sg>span{font-size:clamp(12px,3.2vw,15px); min-height:30px}
+  .sgt .sg>span.he{font-size:clamp(10.5px,2.6vw,13px)} }
+/* ---- טקסט עברי בתוך מכל LTR ---- */
+.he{direction:rtl; unicode-bidi:isolate}
+.mline.he{text-align:center}
+/* ---- כללי ---- */
+.frac{vertical-align:middle; margin:0 .14em}
+.m .frac, .lead .frac, .box .frac, .chainstrip .frac{font-size:.94em}
+.frac>.nu{border-bottom-width:1.6px}
+svg .c1{stroke:var(--navy)} svg .c2{stroke:var(--terra)} svg .c3{stroke:var(--green)}
+.cols>.fig svg{max-height:50vh}
+.box.chem ul.idlist{margin-bottom:0}
+.mline sub{font-size:.62em; vertical-align:-.25em}
+.mline sup{font-size:.68em}
+.mline.big{font-size:clamp(19px,2.2vw,29px)}
+.m sup{font-size:.7em} .m sub{font-size:.64em; vertical-align:-.25em}
+table.rules th{white-space:nowrap}
+.slide .fig .box{font-size:clamp(13px,1.35vw,16px)}
+.slide.divider .by{margin-top:18px; font-size:clamp(14px,1.5vw,18px); color:var(--muted)}
+
+/* התוצאה של שלב בשרשרת — צמודה לחישוב ומודגשת, לא הערת שוליים בקצה */
+.chainstrip .cres{flex:0 0 auto; background:#f6ecd0;
+  border:1.5px solid var(--gold); border-radius:9px; padding:2px 12px 3px;
+  color:var(--navy); font-weight:800; text-align:center;
+  font-size:clamp(13.5px,1.45vw,17px)}
+@media (max-width:760px){ .chainstrip .cres{align-self:flex-start} }
+
+/* שרשרת מוגדלת — לחקירה המלאה, שבה כל שלב צריך להיקרא מהשורה האחרונה בכיתה */
+.chainstrip.zoom{padding:10px 16px 14px}
+.chainstrip.zoom .crow{gap:16px; padding:10px 0}
+.chainstrip.zoom .cmath{font-size:clamp(17px,2.05vw,25px); line-height:1.9}
+.chainstrip.zoom .clab{font-size:clamp(11.5px,1.2vw,13.5px); padding:4px 13px}
+.chainstrip.zoom .cd.he{font-size:clamp(12.5px,1.35vw,15px)}
+.chainstrip.zoom .cres{font-size:clamp(15px,1.7vw,20px)}
+
+/* קופסאות שהיו בשימוש בלי הגדרה (מצגות 7–10): key · warn · quote */
+.box.key{background:#e9f0e9; border-inline-start:5px solid var(--green)}
+.box.key b.tag{color:var(--green)}
+.box.warn{background:#f6e7e2; border-inline-start:5px solid var(--terra)}
+.box.warn b.tag{color:var(--terra)}
+.box.quote{background:#eaeff5; border-inline-start:5px solid var(--navy)}
+.box.quote b.tag{color:var(--navy)}
+/* שער חלק — כותרת ראשית בגודל של כותרת שער (במצגות 9–10 נשענה על ברירת המחדל של הדפדפן) */
+.slide.divider h1{font-size:clamp(34px,5vw,58px); font-weight:900; color:var(--navy); line-height:1.15; margin-bottom:12px}
+.slide.divider .sub{margin-bottom:4px}
+/* מפגש 11 — סימן האינטגרל וגבולותיו */
+.m sub, .mline sub, .chainstrip sub{font-size:.62em; vertical-align:-.25em}
+.slide{padding-bottom:30px}
+ul.big li{padding-top:7px; padding-bottom:7px}
+/* שרשרת ארוכה — אותו גודל קריא, ריווח צפוף יותר, כדי שכל השלבים ייכנסו לשקף */
+.chainstrip.zoom.tight{padding:6px 14px 10px}
+.chainstrip.zoom.tight .crow{padding:6px 0; gap:12px}
+.chainstrip.zoom.tight .cmath{font-size:clamp(16px,1.85vw,22px); line-height:1.75}
+.chainstrip.zoom.tight .crow.res{margin-top:2px; padding:6px 10px}
+/* טבלה מוגדלת — כשהטבלה היא כל תוכן השקף */
+table.rules.big td, table.rules.big td.he, table.rules.big th, table.rules.big th.he{font-size:clamp(16px,1.7vw,21px); padding:10px 14px; line-height:1.5}
+table.rules th.he{direction:rtl; unicode-bidi:isolate}
+
+/* ---- יחידה 1 ---- */
+.box.chem{background:#EAF4F2; border-inline-start:5px solid #1E7A6E}
+.box.chem b.tag{color:#1E7A6E}
+.slide.divider .big-num{font-family:"Heebo",system-ui,sans-serif}
+.mline sub{font-size:.62em; vertical-align:-.25em}
+.cmath sub{font-size:.62em; vertical-align:-.25em}
+.cards3 .card h4 sub{font-size:.6em}
+.slide.title .topics span sub{font-size:.6em}
+</style>
+</head>
+<body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="gi" viewBox="0 0 979 2269"><path d="M224 2010C191 2143 165 2231 100 2231C91 2231 85 2227 85 2219C87 2207 108 2193 108 2169C108 2147 89 2139 70 2139C31 2139 0 2172 0 2215C0 2244 21 2269 72 2269C211 2269 288 2144 333 1963L752 259C784 129 813 38 878 38C887 38 893 42 893 49C891 63 870 73 870 100C870 122 889 130 908 130C947 130 979 97 979 55C979 25 958 0 906 0C764 0 686 135 638 330Z"/></symbol><symbol id="gsum" viewBox="0 0 1112 1450"><path d="M1112 1034H1073C1037 1198 968 1267 829 1267H261L731 654L320 90H697C732 90 775 91 803 95C870 103 937 155 965 286C969 306 976 332 976 351H1012V0H36L557 715L0 1450H1038Z"/></symbol></defs></svg>
+<div id="deck">
+<header id="bar">
+  <span class="t">יחידה 1 · מושגים בסיסיים ועבודה</span>
+  <span class="part-chip" id="partchip">שער</span>
+  <span class="sp"></span>
+  <a class="simlink" href="sim_piston.html" target="_blank" rel="noopener">🧪 הסימולציה</a>
+  <button class="ghost" id="tocbtn">מפת השקפים</button>
+</header>
+<div id="stage">
+<section class="slide title" data-part="שער" data-title="שער היחידה">
+  <div class="eyebrow">תרמודינמיקה לכימאים · יחידה 1 · מפגש 3</div>
+  <h1>מושגים בסיסיים ועבודה</h1>
+  <div class="topics"><span>משתנים צמודים</span><span>המשוואה היסודית</span><span>מגע ושיווי משקל</span><span>תהליכים</span><span>đW = −p<sub>ex</sub> dV</span><span>X dY</span><span>∮đW ≠ 0</span></div>
+  <div class="who">ד״ר עומרי מורג · בית הספר לכימיה · 11.11.2026</div>
+</section>
+
+<section class="slide" data-part="פתיחה" data-title="שבוע של מילים">
+  <div class="eyebrow">פתיחה · כ-8 דקות</div>
+  <h2>השבוע אין מתמטיקה חדשה. יש מילים.</h2>
+  <p class="lead">שבוע שעבר סיימנו עם <span class="m">dU = T dS − p dV</span> וקראנו אותו כדיפרנציאל שלם. אבל מי אמר שיש <span class="m">U</span> שתלוי ב-<span class="m">S</span> וב-<span class="m">V</span>? למה שניים? מה זה בכלל ״מצב״?</p>
+  <div class="box think step" data-ord="1"><b class="tag">המילים קובעות מה מותר לכתוב</b>״הטמפרטורה של המערכת באמצע תהליך בלתי הפיך״ — ביטוי שאולי אין לו מובן. ״<span class="m">p dV</span> של גז שמתפשט לריק״ — נותן אפס, לא מה שחשבתם. מי ששולט במילים לא עושה את הטעויות האלה.</div>
+  <div class="box key step" data-ord="2"><b class="tag">ובסוף המפגש</b>נחזור לבוכנה מכימיה 1 ונגלה משהו שלא סיפרתי שנה שעברה: כשמסובבים מעגל של דחיסה והתפשטות, <b>לא מקבלים את העבודה בחזרה</b>. גז זה לא קפיץ. ושורה אחת מיחידה 0 מכריחה אותנו להמציא את החום.</div>
+</section>
+
+<section class="slide" data-part="פתיחה" data-title="מפת המפגש">
+  <div class="eyebrow">פתיחה · ארבעה חלקים</div>
+  <h2>מה נבנה היום, ומה נבחן</h2>
+  <div class="cards3">
+    <div class="card" style="--accent:var(--navy)"><h4>א · ב</h4><div class="ln he"><b>א</b> המשתנים: כמה צריך, מי אקסטנסיבי, מי צמוד למי — והמשוואה היסודית</div><div class="ln he"><b>ב</b> מגע, שיווי משקל ומצב עמיד</div></div>
+    <div class="card step" data-ord="1" style="--accent:var(--terra)"><h4>ג · ד</h4><div class="ln he"><b>ג</b> תהליכים: מה כופים מבחוץ, מה קורה בפנים; הפיך ≠ איטי</div><div class="ln he"><b>ד</b> עבודה: הבוכנה, ההפיך המרבי, <span class="m">X dY</span>, והמעגל</div></div>
+    <div class="card step" data-ord="2" style="--accent:var(--green)"><h4>בוחן</h4><div class="ln he">ההגדרות נבחנות <b>דרך השימוש</b>: סיווג בשאלת הבנה, חישוב עבודה — גם שאינה <span class="m">p dV</span> — בשאלת פיתוח</div><div class="fin he">״האם התהליך הפיך, ולמה״ — כן. ״הגדירו הפיך״ — לא.</div></div>
+  </div>
+  <div class="box chem step" data-ord="3"><b class="tag">כבר ראיתם בכימיה כללית 1</b>עבודת <span class="m">p dV</span> בהתפשטות איזותרמית הפיכה ובלתי הפיכה, וארבע המשקולות על הבוכנה. את המספרים נזכיר ב-5 דקות ולא נחשב מחדש. <b>חדש:</b> הצמדים והמשוואה היסודית, סוגי המגע, מצב עמיד, <span class="m">X dY</span>, ולמה מעגל של עבודה מכריח את החום.</div>
+</section>
+
+<section class="slide divider" style="--accent:var(--navy)" data-part="חלק א" data-title="שער חלק א">
+  <div class="big-num">א</div>
+  <h1>המשתנים התרמודינמיים</h1>
+  <div class="sub">כמה צריך, מי אקסטנסיבי, מי צמוד למי · כ-25 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="שלושה מספיקים">
+  <div class="eyebrow">חלק א · מצב ומשוואת מצב</div>
+  <h2>כוס מים על השולחן — כמה מספרים צריך?</h2>
+  <p class="lead">לא מיקום ומהירות של <span class="m">10<sup>25</sup></span> מולקולות. <b>שלושה.</b> טמפרטורה, נפח, כמה מולים. תנו לי שלושה ואני יודע את הלחץ, האנרגיה, האנטרופיה — הכול.</p>
+  <div class="box idea step" data-ord="1"><b class="tag">מצב ומשוואות מצב</b>מצב של חומר טהור בשיווי משקל נקבע על ידי <b>שלושה</b> משתנים, למשל <span class="m">T, V, n</span>. כל השאר — דרך <b>משוואות מצב</b> כמו <span class="m">p = nRT/V</span>. ״שלושה״ לא תלוי בשאלה אם אנחנו <b>יודעים</b> את משוואת המצב. די שהיא קיימת.</div>
+  <div class="box quote step" data-ord="2"><b class="tag">💬 ״למה שלושה ולא שבעה?״</b>שאלה מצוינת, ולא אענה עליה היום. תחזיקו אותה — היא תיענה ביחידה 8 כשנדבר על הומוגניות, והתשובה יוצאת ממתמטיקה, לא מניסוי.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="ששת המשתנים">
+  <div class="eyebrow">חלק א · ששת המשתנים הנפוצים — בזוגות</div>
+  <h2>שני מיכלים זהים, מחברים לאחד: מה מוכפל ומה לא?</h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th>אקסטנסיבי — מוכפל</th><th>יחידות</th><th>אינטנסיבי — לא</th><th>יחידות</th><th class="he">מה האינטנסיבי קובע</th></tr>
+    <tr><td>V</td><td>m³</td><td>p</td><td>Pa = J m⁻³</td><td class="he">כיוון זרימת האנרגיה כשהנפח משתנה — עבודה</td></tr>
+    <tr class="step" data-ord="1"><td>S</td><td>J K⁻¹</td><td>T</td><td>K</td><td class="he">כיוון זרימת האנרגיה כשהאנטרופיה משתנה — חום</td></tr>
+    <tr class="step" data-ord="2"><td>n</td><td>mol</td><td>μ</td><td>J mol⁻¹</td><td class="he">כיוון זרימת האנרגיה כשמספר המולים משתנה — חומר</td></tr>
+  </table></div>
+  <div class="box key step" data-ord="3"><b class="tag">מבחן ההכפלה — זה כל ההגדרה</b>נפח כפול, מולים כפול, אנרגיה כפול, אנטרופיה כפול — <b>אקסטנסיביים</b>. הטמפרטורה? אותה טמפרטורה. הלחץ? אותו לחץ — <b>אינטנסיביים</b>. מנה של שני אקסטנסיביים היא אינטנסיבית: <span class="m">v = V/n</span>, <span class="m">ρ = n/V</span>, <span class="m">u<sub>V</sub> = U/V</span>.</div>
+  <div class="box idea step" data-ord="4"><b class="tag">צמודים</b><span class="m">(V, p)</span>, <span class="m">(S, T)</span>, <span class="m">(n, μ)</span> — כל זוג דרך אחת להכניס אנרגיה, ולמכפלת כל זוג יחידות של <b>אנרגיה</b>: <span class="m">Pa·m³ = J</span>, <span class="m">K·J K⁻¹ = J</span>, <span class="m">J mol⁻¹·mol = J</span> ✓</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="דוגמה 1 — מבחן ההכפלה">
+  <div class="eyebrow">חלק א · דוגמה 1</div>
+  <h2>סווגו: <span class="m">V, p, S, T, n, μ, ρ, v, U, u<sub>V</sub>, C<sub>V</sub>, c<sub>V</sub></span></h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">אקסטנסיבי</span><span class="cmath">V, S, n, U, C<sub>V</sub></span><span class="cd he">C<sub>V</sub> — מערכת כפולה צריכה פי שניים חום למעלה אחת</span></div>
+    <div class="crow step" data-ord="1"><span class="clab side">אינטנסיבי</span><span class="cmath">T, p, μ</span><span class="cd he">מבחן ההכפלה: לא משתנים</span></div>
+    <div class="crow step" data-ord="2"><span class="clab side">אינטנסיבי</span><span class="cmath">ρ = n/V, v = V/n, u<sub>V</sub> = U/V, c<sub>V</sub> = C<sub>V</sub>/n</span><span class="cd he">מנה של שני אקסטנסיביים</span></div>
+  </div>
+  <div class="box think step" data-ord="3"><b class="tag">עצרו וחשבו</b>האם <span class="m">V/n</span> של גז אידיאלי ב-<span class="m">300 K</span> ו-<span class="m">1 bar</span> תלוי בכמה גז יש בבלון? — לא. <span class="m">24.9 L mol⁻¹</span> בין אם יש מול אחד או אלף. זה מה שאינטנסיבי אומר.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="המשוואה היסודית">
+  <div class="eyebrow">חלק א · מפת הקורס</div>
+  <h2>כל צמד תורם איבר אחד לשינוי האנרגיה</h2>
+  <div class="box idea"><b class="tag">המשוואה היסודית</b><span class="mline big">dU = T dS − p dV + μ dn</span></div>
+  <div class="chainstrip zoom tight step" data-ord="1">
+    <div class="crow"><span class="clab chk">T</span><span class="cmath">T = (∂U/∂S)<sub>V,n</sub></span><span class="cd he">דיפרנציאל שלם של U(S,V,n) ⇒ האינטנסיביים הם שיפועים. T אינה ״מה שהמדחום מראה״</span></div>
+    <div class="crow"><span class="clab chk">−p</span><span class="cmath">−p = (∂U/∂V)<sub>S,n</sub></span><span class="cd he">המינוס: דחיסה (dV &lt; 0) מכניסה אנרגיה, U עולה כש-V יורד</span></div>
+    <div class="crow"><span class="clab chk">μ</span><span class="cmath">μ = (∂U/∂n)<sub>S,V</sub></span><span class="cd he">בדיוק אותו דבר. הראשון מוכר מהחיים, השני לא — זה כל ההבדל</span></div>
+  </div>
+  <div class="box quote step" data-ord="2"><b class="tag">💬 ומה עוד לא הגדרנו?</b>אנטרופיה. משתמשים בה כמו בכל משתנה, ומגדירים כמו שצריך ביחידה 6. בינתיים: פונקציית מצב שצמודה לטמפרטורה, כמו שהנפח צמוד ללחץ.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="דוגמאות 2–3 — גדלים מולריים">
+  <div class="eyebrow">חלק א · דוגמאות 2 ו-3 · שלושה הופכים לשניים</div>
+  <h2>מחלקים ב-<span class="m">n</span> — והתלות בגודל נעלמת</h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">n קבוע</span><span class="cmath">dU/n = T dS/n − p dV/n ⇒ du = T ds − p dv</span><span class="cd he">n מספר, נכנס לתוך הדיפרנציאלים</span></div>
+    <div class="crow step" data-ord="1"><span class="clab fin">כולם אינטנסיביים</span><span class="cmath">u = U/n, s = S/n, v = V/n</span><span class="cd he">קשר בין אינטנסיביים בלבד מאבד משתנה אקסטנסיבי אחד</span></div>
+  </div>
+  <div class="chainstrip zoom step" data-ord="2">
+    <div class="crow"><span class="clab chk">גז אידיאלי</span><span class="cmath">p(T, V, n) = nRT/V = ρRT</span><span class="cd he">n/V = ρ — שני משתנים אינטנסיביים במקום שלושה</span></div>
+  </div>
+  <div class="box key step" data-ord="3"><b class="tag">כלל</b>לכל חומר טהור יש משוואות מצב מהצורה <span class="m">p = p(T, ρ)</span> או <span class="m">μ = μ(T, p)</span>. כשעוברים לאינטנסיביים בלבד, ״שלושה״ הופכים ל״שניים״.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="תרגול בכיתה 1">
+  <div class="eyebrow">חלק א · תרגול בכיתה 1 · 6 דקות לבד</div>
+  <h2>סיווג משתנים ומשוואת מצב מולרית</h2>
+  <ul class="big"><li>(א) אקסטנסיבי או אינטנסיבי, עם נימוק של מילה: מסה, אנתלפיה <span class="m">H</span>, חום סגולי ליחידת מסה, <span class="m">α<sub>p</sub></span>, שטח פנים של טיפה, מתח פנים.</li><li class="step" data-ord="1">(ב) המשוואה היסודית לגדלים <b>נפחיים</b> (<span class="m">u<sub>V</sub>, s<sub>V</sub>, ρ</span>) — ולמה איבר ה-<span class="m">p dV</span> נעלם. נתון (יוכח ביחידה 8): <span class="m">U = TS − pV + μn</span>.</li><li class="step" data-ord="2">(ג) ואן דר ואלס <span class="m">p = RT/(v − b) − a/v²</span> במשתנים <span class="m">(T, ρ)</span>, ובדיקת הגבול <span class="m">ρ → 0</span>.</li></ul>
+  <div class="box key step" data-ord="3"><b class="tag">(ג) על הלוח</b><span class="mline">v = 1/ρ ⇒ p(T, ρ) = ρRT / (1 − bρ) − aρ²</span>בגבול <span class="m">ρ → 0</span>: המכנה → 1, האיבר השני → 0, ולכן <span class="m">p → ρRT</span> ✓. הפתרון המלא — חוברת התרגילים, תרגיל 1.</div>
+</section>
+
+<section class="slide divider" style="--accent:var(--terra)" data-part="חלק ב" data-title="שער חלק ב">
+  <div class="big-num">ב</div>
+  <h1>מגע, שיווי משקל ומצב עמיד</h1>
+  <div class="sub">שלושה מגעים, שלושה זרמים — ומה משתווה · כ-15 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="שלושה מגעים">
+  <div class="eyebrow">חלק ב · מגע תרמודינמי</div>
+  <h2>האנרגיה של מערכת משתנה <b>רק</b> דרך מגע</h2>
+  <div class="cards3">
+    <div class="card" style="--accent:var(--terra)"><h4>מגע תרמי</h4><div class="ln he">החלפת אנרגיה בזרימת <b>חום</b></div><div class="ln he">בקבוק במקרר</div><div class="fin he">משתווה: <span class="m">T</span></div></div>
+    <div class="card step" data-ord="1" style="--accent:var(--navy)"><h4>מגע לחץ</h4><div class="ln he">החלפת אנרגיה בשינוי <b>נפח</b></div><div class="ln he">בלון באוויר החדר</div><div class="fin he">משתווה: <span class="m">p</span></div></div>
+    <div class="card step" data-ord="2" style="--accent:var(--green)"><h4>מגע דיפוזיבי</h4><div class="ln he">החלפת אנרגיה במעבר <b>חומר</b></div><div class="ln he">ממברנה במתקן התפלה</div><div class="fin he">משתווה: <span class="m">μ</span></div></div>
+  </div>
+  <div class="box idea step" data-ord="3"><b class="tag">שלושה זרמים — ומה יוכיח אותם</b>נפח עובר מהלחץ הגבוה לנמוך; חום מהטמפרטורה הגבוהה לנמוכה; חומר מהפוטנציאל הכימי הגבוה לנמוך. נראה מובן מאליו — ושלושתם <b>יוכחו</b> מהחוק השני ביחידה 6. עד אז: עובדות ניסיוניות. <b>אמבט</b> — מערכת גדולה בהרבה, במגע; המערכת מקבלת את ערך האמבט.</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="שיווי משקל מול מצב עמיד">
+  <div class="eyebrow">חלק ב · ההבחנה שהכי הרבה סטודנטים מפספסים</div>
+  <h2>קיר הבית בחורף: <span class="m">22 °C</span> בפנים, <span class="m">8 °C</span> בחוץ, כלום לא משתנה. שיווי משקל?</h2>
+  <div class="cols"><div class="txt">
+    <div class="box idea"><b class="tag">שיווי משקל תרמודינמי</b>כל המשתנים אינם משתנים בזמן <b>ואין זרמים</b>. הזרמים נעלמים כשהאינטנסיביים (<span class="m">T, p, μ</span>) <b>אחידים</b> על פני המערכת.</div>
+    <div class="box warn step" data-ord="1"><b class="tag">מצב עמיד — לא שיווי משקל</b>שום דבר לא משתנה בזמן, אבל <b>יש זרם</b>: הקיר, מוט בין מים רותחים לקרח. הטמפרטורות קבועות, החום זורם. נתקו את האמבטים — והמצב ישתנה.</div>
+    <div class="box key step" data-ord="2"><b class="tag">השאלה הנכונה</b>לא ״האם משהו משתנה״ אלא ״האם משהו <b>זורם</b>״. ואם האינטנסיביים לא אחידים — זורם.</div>
+  </div><div class="fig">
+    <svg viewBox="0 0 420 300" aria-label="מוט בין אמבט חם לאמבט קר עם פרופיל טמפרטורה">
+      <rect x="20" y="60" width="50" height="150" rx="6" fill="#C0553A" opacity=".85"/><rect x="350" y="60" width="50" height="150" rx="6" fill="#7B9ACC" opacity=".9"/>
+      <defs><linearGradient id="rod" x1="0" x2="1"><stop offset="0" stop-color="#C0553A"/><stop offset="1" stop-color="#7B9ACC"/></linearGradient></defs>
+      <rect x="70" y="115" width="280" height="40" fill="url(#rod)" stroke="#6B7280" stroke-width="2"/>
+      <text x="45" y="45" class="num" text-anchor="middle" style="fill:#C0553A">100 °C</text><text x="375" y="45" class="num" text-anchor="middle" style="fill:#1F4E79">0 °C</text>
+      <g class="step" data-ord="1"><line x1="90" y1="245" x2="330" y2="245" stroke="#C0553A" stroke-width="5"/><polygon points="330,245 316,237 316,253" fill="#C0553A"/><text x="210" y="275" class="lbl" text-anchor="middle" style="fill:#C0553A">זרם חום קבוע</text></g>
+      <g class="step" data-ord="2"><polyline points="70,90 350,180" fill="none" stroke="#1F4E79" stroke-width="3" stroke-dasharray="6 4"/><text x="215" y="76" class="num" text-anchor="middle" style="fill:#1F4E79">הטמפרטורה לא אחידה לאורך המוט</text></g>
+    </svg>
+  </div></div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="תרגול בכיתה 2">
+  <div class="eyebrow">חלק ב · תרגול בכיתה 2 · 5 דקות</div>
+  <h2>לכל מערכת: איזה מגע, פתוחה/סגורה/מבודדת, ומה משתווה</h2>
+  <ul class="big"><li>(א) בקבוק סגור וקשיח של מים במקרר.</li><li>(ב) בלון גומי מנופח באוויר החדר.</li><li>(ג) כוס תה חם על השולחן, פתוחה.</li><li class="step" data-ord="1">(ד) גז בתרמוס אטום עם בוכנה מבודדת שיכולה לנוע.</li><li class="step" data-ord="1">(ה) קיר בית בחורף, שעה אחרי שהחימום נדלק.</li></ul>
+  <div class="box key step" data-ord="2"><b class="tag">(ד) המלכוד</b>אין מגע תרמי (מבודד) אבל יש מגע לחץ — לכן רק <b>הלחץ</b> ישתווה; הטמפרטורה של הגז תישאר מה שתישאר אחרי הדחיסה האדיאבטית. (ה) מצב עמיד. הפתרון המלא — תרגיל 2 בחוברת.</div>
+  <a class="simbanner step" data-ord="3" href="sim_piston.html#a" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשונית א ״מגע״</b><span>שני תאים וקיר: בוחרים סוג מגע ורואים מה משתווה — ומה קורה עם אמבטים בקצוות</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide divider" style="--accent:var(--green)" data-part="חלק ג" data-title="שער חלק ג">
+  <div class="big-num">ג</div>
+  <h1>תהליכים</h1>
+  <div class="sub">מה כופים מבחוץ, ומה קורה בפנים · כ-20 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="ארבעה תהליכים">
+  <div class="eyebrow">חלק ג · ארבעת התהליכים לפי אילוץ</div>
+  <h2>כופים <b>רק את החוץ</b></h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th class="he">תהליך</th><th class="he">מה כופים</th><th class="he">איך</th></tr>
+    <tr><td class="he"><b>איזותרמי</b></td><td class="he">טמפרטורה <b>חיצונית</b> קבועה</td><td class="he">מגע תרמי עם אמבט</td></tr>
+    <tr class="step" data-ord="1"><td class="he"><b>איזוברי</b></td><td class="he">לחץ <b>חיצוני</b> קבוע</td><td class="he">מגע לחץ עם אמבט — האטמוספרה</td></tr>
+    <tr class="step" data-ord="2"><td class="he"><b>איזוכורי</b></td><td class="he">נפח קבוע</td><td class="he">כלי קשיח ואטום</td></tr>
+    <tr class="step" data-ord="3"><td class="he"><b>אדיאבטי</b></td><td class="he">אין זרימת חום</td><td class="he">בידוד תרמי</td></tr>
+  </table></div>
+  <div class="box warn step" data-ord="4"><b class="tag">שני הבלבולים שחוזרים בכל בוחן</b><b>איזותרמי ≠ בלי חום</b> — חום זורם כל הזמן, זה מה ששומר על הטמפרטורה. <b>אדיאבטי ≠ טמפרטורה קבועה</b> — דחיסה אדיאבטית מחממת.</div>
+  <div class="box think step" data-ord="5"><b class="tag">ומה עם המערכת עצמה?</b><span class="m">T</span> ו-<span class="m">p</span> <b>של המערכת</b> תלויים בפרטי התהליך, ובאמצע תהליך בלתי הפיך יכולים להיות <b>בלתי מוגדרים</b> — הפרשי טמפרטורה או לחץ בין אזורים.</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="הפיך ≠ איטי">
+  <div class="eyebrow">חלק ג · הפיך, קוואזי-סטטי, בלתי הפיך</div>
+  <h2>תהליך הפיך — דבר שלא קיים. אז למה?</h2>
+  <div class="box idea"><b class="tag">תהליך הפיך</b>מקרה גבול: אינסוף שלבים אינפיניטסימליים, ובכל שלב המערכת <b>בשיווי משקל</b>. (1) הפיכת הכיוון והשקעת אותה עבודה מחזירה בדיוק — מכאן השם. (2) העבודה שניתן להפיק בין שני מצבים <b>מרבית</b> בהפיך (יוכח ביחידה 6).</div>
+  <div class="box quote step" data-ord="1"><b class="tag">💬 בכיתה</b>הוא הגבול שאליו כל תהליך אמיתי <b>מתקרב</b> כשעושים אותו לאט — ובגבול הזה כל המשתנים מוגדרים בכל רגע, אז אפשר לחשב. ״אז הפיך זה פשוט איטי?״ <b>לא!</b> שני גזים, מחיצה, חור זעיר. הערבוב ייקח שבוע. איטי? מאוד. הפיך? בשום אופן — לא תראו את הגזים נפרדים חזרה.</div>
+  <div class="box key step" data-ord="2"><b class="tag">קוואזי-סטטי</b>איטי מאוד. כל הפיך הוא קוואזי-סטטי, אבל <b>לא ההפך</b>: התמוססות גביש, ערבוב דרך חריר, השוואת טמפרטורות בקיר דק — איטיים ככל שנרצה, ובלתי הפיכים. איטי הכרחי, לא מספיק.</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="תרגול בכיתה 3">
+  <div class="eyebrow">חלק ג · תרגול בכיתה 3 · 5 דקות</div>
+  <h2>גליל עם מחיצה: A משמאל, B מימין, אותם <span class="m">T</span> ו-<span class="m">p</span>. הפיך או לא?</h2>
+  <ul class="big"><li>(א) מרימים את המחיצה לאט מאוד, עד שהגזים נפגשים.</li><li>(ב) מזיזים את המחיצה לאט מאוד ימינה, מחצית הדרך.</li><li class="step" data-ord="1">(ג) דוחפים את המחיצה במהירות שמאלה, ומחזירים לאט.</li><li class="step" data-ord="1">(ד) חור זעיר — הגזים מתערבבים במשך שבוע.</li><li class="step" data-ord="1">(ה) מחממים לאט, עם אמבט שטמפרטורתו עולה בהדרגה.</li></ul>
+  <div class="box key step" data-ord="2"><b class="tag">על הלוח</b>(א), (ד) ערבוב — בלתי הפיך תמיד. (ב), (ה) הפיך. (ג) לא קוואזי-סטטי — ובאמצע הדחיסה המהירה ללחץ של הגז <b>אין ערך אחד מוגדר</b>. תזכרו את (ג): זה בדיוק ״<span class="m">p<sub>ex</sub></span> ולא <span class="m">p</span>״ של החלק הבא.</div>
+  <a class="simbanner step" data-ord="3" href="sim_piston.html#b" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשונית ב ״תהליכים״</b><span>בוחרים אילוץ ורואים איזה מסלול הוא מרשה במישור p–V — הפיך מול בבת אחת</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide divider" style="--accent:var(--gold)" data-part="חלק ד" data-title="שער חלק ד">
+  <div class="big-num">ד</div>
+  <h1>עבודה</h1>
+  <div class="sub">הבוכנה, ההפיך המרבי, ועבודה כללית · כ-35 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="הגדרה — תמיד p חיצוני">
+  <div class="eyebrow">חלק ד · עבודה מכנית על גז</div>
+  <h2>בוכנה בשטח <span class="m">A</span>, הסביבה דוחפת בכוח <span class="m">F</span></h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">הבוכנה נעה dx פנימה</span><span class="cmath">dV = −A dx, &nbsp; p<sub>ex</sub> = F/A</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">עבודה = כוח × דרך</span><span class="cmath">đW = F dx = (F/A)·A dx = −p<sub>ex</sub> dV</span><span class="cd he">מציבים F = p<sub>ex</sub>A ו-A dx = −dV</span></div>
+  </div>
+  <div class="box idea step" data-ord="2"><b class="tag">מוסכמה</b>עבודה שנעשית <b>על</b> המערכת חיובית. דחיסה (<span class="m">dV &lt; 0</span>) — <span class="m">đW &gt; 0</span>.</div>
+  <div class="box warn step" data-ord="3"><b class="tag">תמיד p<sub>ex</sub> — הלחץ החיצוני</b>רק בתהליך הפיך <span class="m">p<sub>ex</sub> = p</span> של המערכת, ואז <span class="m">đW = −p dV</span> עם משוואת המצב. בדחיסה מהירה ללחץ הגז אפילו אין ערך מוגדר (סעיף ג של התרגול) — אבל <span class="m">p<sub>ex</sub></span> תמיד יש.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="ארבע המשקולות — המספרים">
+  <div class="eyebrow">חלק ד · כבר ראיתם בכימיה כללית 1</div>
+  <h2>בוכנה <span class="m">0.050 m²</span>, ארבע משקולות של <span class="m">50 kg</span>, גז ב-<span class="m">20.0 L, 300 K</span> תחת <span class="m">1.39 bar</span></h2>
+  <div class="cols"><div class="txt">
+    <div class="tblwrap"><table class="rules">
+      <tr><th class="he">הסרת המשקולות</th><th>בבת אחת</th><th>2 צעדים</th><th>4 צעדים</th><th>הפיך</th></tr>
+      <tr><td class="he">עבודה שהגז עשה [J]</td><td class="pos">785</td><td class="pos">849</td><td class="pos">884</td><td class="pos">922</td></tr>
+    </table></div>
+    <div class="box quote step" data-ord="1"><b class="tag">💬 למה בבת אחת פחות?</b>ברגע שהורדתם הכול, <span class="m">p<sub>ex</sub></span> צנח ל-<span class="m">1 bar</span> והגז דחף <b>כנגד לחץ נמוך</b> לכל הדרך. אחת-אחת — בכל שלב כנגד לחץ גבוה יותר, והשטח מתחת למדרגות גדל. בגבול — אינסוף משקולות זעירות — <span class="m">p<sub>ex</sub></span> צמוד ל-<span class="m">p</span> כל הזמן, והשטח הוא השטח מתחת לאיזותרמה. <b>זה המקסימום.</b></div>
+    <div class="box key step" data-ord="2"><b class="tag">״הפיך = מרבי״ במישור p–V</b>מדרגות מתחת לעקומה. אף מסלול לא ייתן יותר.</div>
+  </div><div class="fig">
+    <svg viewBox="0 0 420 300" aria-label="מישור לחץ-נפח: איזותרמה, מדרגות ארבעה צעדים ומלבן בבת אחת">
+      <line x1="50" y1="260" x2="410" y2="260" class="ax"/><line x1="50" y1="260" x2="50" y2="10" class="ax"/>
+      <text x="230" y="290" class="num" text-anchor="middle">V [L]</text><text x="56" y="14" class="num">p<tspan baseline-shift="sub" font-size="75%">ex</tspan> [bar]</text>
+      <text x="108" y="277" class="num" text-anchor="middle">20</text><text x="225" y="277" class="num" text-anchor="middle">24</text><text x="342" y="277" class="num" text-anchor="middle">28</text>
+      <text x="44" y="195" class="num" text-anchor="end">1.00</text><text x="44" y="62" class="num" text-anchor="end">1.39</text>
+      <polygon points="108,57 108,91 153,91 153,124 204,124 204,158 265,158 265,191 337,191 337,260 108,260" fill="#1F4E79" opacity=".14"/>
+      <polyline points="65,18 73,26 82,34 90,42 99,49 108,56 116,63 125,70 133,77 142,83 151,89 159,95 168,101 176,107 185,112 194,118 202,123 211,128 219,133 228,138 237,143 245,148 254,152 262,157 271,161 280,165 288,169 297,173 305,177 314,181 323,185 331,189 340,193 348,196 357,200 366,203 374,206 383,210 391,213 400,216" fill="none" stroke="#2A9D8F" stroke-width="3.5"/>
+      <polyline points="108,57 108,91 153,91 153,124 204,124 204,158 265,158 265,191 337,191" fill="none" stroke="#1F4E79" stroke-width="3.5"/>
+      <polyline points="108,57 108,191 337,191" fill="none" stroke="#C0553A" stroke-width="3" stroke-dasharray="7 5"/>
+      <text x="200" y="40" class="lbl" text-anchor="middle" style="fill:#1F4E79">4 צעדים</text><line x1="178" y1="46" x2="134" y2="86" stroke="#1F4E79" stroke-width="1.6"/><polygon points="134,86 136,76 143,82" fill="#1F4E79"/><text x="318" y="150" class="lbl" text-anchor="middle" style="fill:#1E7A6E">הפיך</text><text x="222" y="222" class="lbl" text-anchor="middle" style="fill:#C0553A">בבת אחת</text>
+    </svg>
+  </div></div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="דוגמה 4 — שני צעדים">
+  <div class="eyebrow">חלק ד · דוגמה 4 · החישוב שלא עשיתם שנה שעברה</div>
+  <h2>מסירים שתיים, ואז את השתיים הנותרות</h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">איזותרמי</span><span class="cmath">p<sub>0</sub>V<sub>0</sub> = 1.392 × 10<sup>5</sup> · 0.0200 = 2785 J</span><span class="cd he">pV קבוע לאורך כל הדרך</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">צעד 1</span><span class="cmath">p<sub>ex</sub> = 1.00 × 10<sup>5</sup> + 19620 = 1.196 × 10<sup>5</sup> Pa, &nbsp; V<sub>1</sub> = 2785 / 1.196 × 10<sup>5</sup> = 0.02328 m<sup>3</sup></span><span class="cd he">19620 = 2·50·9.81/0.050 — שתי משקולות</span></div>
+    <div class="crow step" data-ord="2"><span class="clab chk">W<sub>1</sub></span><span class="cmath">W<sub>1</sub> = −p<sub>ex</sub>(V<sub>1</sub> − V<sub>0</sub>) = −1.196 × 10<sup>5</sup> · 0.00328 = −392 J</span></div>
+    <div class="crow step" data-ord="3"><span class="clab chk">צעד 2</span><span class="cmath">p<sub>ex</sub> = 1.00 × 10<sup>5</sup>, &nbsp; V<sub>2</sub> = 0.02785 m<sup>3</sup>, &nbsp; W<sub>2</sub> = −1.00 × 10<sup>5</sup> · (0.02785 − 0.02328) = −457 J</span></div>
+    <div class="crow res step" data-ord="4"><span class="clab fin">סכום</span><span class="cmath">W = −392 − 457 = −849 J</span><span class="cd he">הגז עשה 849 J — בין 785 (צעד אחד) ל-922 (הפיך) ✓</span></div>
+  </div>
+  <a class="simbanner step" data-ord="5" href="sim_piston.html#c" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשונית ג ״המשקולות״</b><span>1, 2, 4, 10 ואינסוף צעדים — המדרגות מתמלאות עד האיזותרמה</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="עבודה כללית — X dY">
+  <div class="eyebrow">חלק ד · התורה מראה שהיא כללית</div>
+  <h2>מי משחק את <span class="m">p</span> ומי את <span class="m">V</span></h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th class="he">מערכת</th><th class="he">X — אינטנסיבי, ״הכוח״</th><th class="he">dY — אקסטנסיבי, ״ההעתק״</th><th>đW = X dY</th></tr>
+    <tr><td class="he">גז / נוזל</td><td>−p<sub>ex</sub></td><td>dV</td><td>−p<sub>ex</sub> dV</td></tr>
+    <tr class="step" data-ord="1"><td class="he">גומייה, סיב</td><td>f — מתיחות</td><td>dL</td><td>f dL</td></tr>
+    <tr class="step" data-ord="1"><td class="he">טיפה, קרום סבון</td><td>γ — מתח פנים</td><td>dA</td><td>γ dA</td></tr>
+    <tr class="step" data-ord="2"><td class="he">חומר מגנטי</td><td>H — שדה</td><td>dM</td><td>H dM</td></tr>
+    <tr class="step" data-ord="2"><td class="he">תא חשמלי</td><td>φ — מתח</td><td>dq</td><td>φ dq</td></tr>
+  </table></div>
+  <div class="box idea step" data-ord="3"><b class="tag">הסימן בא מהפיזיקה, לא מנוסחה משוננת</b>בגז מינוס כי דחיסה — נפח <b>יורד</b> — מכניסה אנרגיה. בגומייה מתיחה — אורך <b>עולה</b> — מכניסה אנרגיה, אז פלוס.</div>
+  <div class="box key step" data-ord="4"><b class="tag">הדרך לפתור — תמיד אותה דרך</b>מבטאים הכול במשתנה אחד (משוואת המצב של המערכת + אילוץ התהליך), ומאנטגרלים.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="דוגמה 5 — מגנטיזציה">
+  <div class="eyebrow">חלק ד · דוגמה 5 · עבודה שאינה p dV</div>
+  <h2><span class="m">M(H, T) = H / (α − k<sub>B</sub>T)</span>, <span class="m">đW = H dM</span>. מעלים את השדה איזותרמית מ-<span class="m">H<sub>0</sub></span> ל-<span class="m">5H<sub>0</sub></span></h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">צעד 1 — הכול ב-H</span><span class="cmath">dM = (∂M/∂H)<sub>T</sub> dH + (∂M/∂T)<sub>H</sub> dT</span><span class="cd he">הדיפרנציאל השלם של M — יחידה 0</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">איזותרמי</span><span class="cmath">dT = 0 ⇒ dM = dH / (α − k<sub>B</sub>T)</span><span class="cd he">(∂M/∂H)<sub>T</sub> = 1/(α − k<sub>B</sub>T): T מספר, M לינארי ב-H</span></div>
+    <div class="crow step" data-ord="2"><span class="clab chk">צעד 2 — אינטגרל</span><span class="cmath">W = ∫<sub>H<sub>0</sub></sub><sup>5H<sub>0</sub></sup> H dH / (α − k<sub>B</sub>T) = [H<sup>2</sup>/2]<sub>H<sub>0</sub></sub><sup>5H<sub>0</sub></sup> / (α − k<sub>B</sub>T)</span><span class="cd he">המכנה מספר — יוצא מהאינטגרל</span></div>
+    <div class="crow res step" data-ord="3"><span class="clab fin">תוצאה</span><span class="cmath">W = (25H<sub>0</sub><sup>2</sup> − H<sub>0</sub><sup>2</sup>) / 2(α − k<sub>B</sub>T) = 12H<sub>0</sub><sup>2</sup> / (α − k<sub>B</sub>T)</span><span class="cd he">חיובי — הסביבה יישרה את המומנטים</span></div>
+  </div>
+  <div class="box think step" data-ord="4"><b class="tag">למה ״בנפח קבוע״? ולמה יחידה 0?</b>כדי שלא תהיה גם עבודת <span class="m">−p dV</span>. ובלי הדיפרנציאל השלם של <span class="m">M</span> לא היה איך לעבור מ-<span class="m">dM</span> ל-<span class="m">dH</span>. זו שאלת הפיתוח הטיפוסית של הבוחן: ״נתונה <span class="m">Y(X, T)</span>; חשבו את העבודה באיזותרמי״.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="דוגמה 6 — המערכת הביתית">
+  <div class="eyebrow">חלק ד · דוגמה 6 · U = aVT⁴, p = aT⁴/3</div>
+  <h2>המערכת הביתית מתפשטת איזותרמית והפיך מ-<span class="m">V<sub>1</sub></span> ל-<span class="m">V<sub>2</sub></span></h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">הפיך</span><span class="cmath">p<sub>ex</sub> = p = aT<sup>4</sup>/3</span><span class="cd he">מותר להשתמש במשוואת המצב</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">T קבוע</span><span class="cmath">W = −∫ (aT<sup>4</sup>/3) dV = −(aT<sup>4</sup>/3)(V<sub>2</sub> − V<sub>1</sub>) &lt; 0</span><span class="cd he">aT⁴/3 מספר — יוצא מהאינטגרל; המערכת עשתה עבודה</span></div>
+  </div>
+  <div class="box key step" data-ord="2"><b class="tag">השוו לגז אידיאלי</b><span class="m">W = −nRT ln(V<sub>2</sub>/V<sub>1</sub>)</span> — לוגריתם, כי שם <span class="m">p</span> יורד עם <span class="m">V</span>. כאן <span class="m">p</span> תלוי רק ב-<span class="m">T</span>: בהתפשטות איזותרמית הלחץ <b>קבוע</b>, ההתפשטות בעצם איזוברית, והעבודה לינארית ב-<span class="m">ΔV</span>. (החום שזרם — ביחידה 3.)</div>
+  <a class="simbanner step" data-ord="3" href="sim_piston.html#d" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשונית ד ״עבודה כללית״</b><span>גומייה, טיפה, מגנט, גז — ״שטח מתחת לעקומה״ הוא אותו רעיון בכל מערכת</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="המעגל שלא מחזיר את הכסף">
+  <div class="eyebrow">חלק ד · הרגע הכי יפה של המפגש</div>
+  <h2>מורידים הכול בבת אחת, מחזירים הכול בבת אחת. חזרנו למצב ההתחלתי.</h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">↓ התפשטות</span><span class="cmath">W<sub>↓</sub> = −1.00 × 10<sup>5</sup> · (+0.00785) = −785 J</span><span class="cd he">p<sub>ex</sub> = 1.00 bar, 300 K</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">↑ דחיסה</span><span class="cmath">W<sub>↑</sub> = −1.39 × 10<sup>5</sup> · (−0.00785) = +1093 J</span><span class="cd he">p<sub>ex</sub> = 1.39 bar — ארבע המשקולות מונחות בבת אחת</span></div>
+    <div class="crow res step" data-ord="2"><span class="clab fin">המעגל</span><span class="cmath">∮đW = −785 + 1093 = +308 J</span><span class="cd he">308 J נטו בכל סיבוב, והמערכת חזרה למצבה. גז איננו קפיץ.</span></div>
+  </div>
+  <div class="box key step" data-ord="3"><b class="tag">ועכשיו יחידה 0</b><span class="m">U</span> פונקציית מצב ⇒ <span class="m">∮dU = 0</span>. אבל <span class="m">∮đW = 308 J</span>. חייבת להיות תרומה <b>נוספת</b> לאנרגיה שמבטלת אותה — קוראים לה <b>חום</b>, <span class="m">Q</span>, והיא איננה פונקציית מצב (אחרת גם היא הייתה אפס במעגל). לא הנחתי שקיים חום: המתמטיקה של שבוע שעבר <b>מכריחה</b> אותו. זהו החוק הראשון, במלואו ביחידה 3: <span class="m">dU = đQ + đW</span>.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="תרגול בכיתה 4">
+  <div class="eyebrow">חלק ד · תרגול בכיתה 4 · 8 דקות</div>
+  <h2>גומייה, והמעגל</h2>
+  <ul class="big"><li>(א) <span class="m">f = κT(L − L<sub>0</sub>)</span>. מותחים איזותרמית מ-<span class="m">L<sub>0</sub></span> ל-<span class="m">2L<sub>0</sub></span>. העבודה שנעשתה עליה — ובדיקת יחידות.</li><li class="step" data-ord="1">(ב) אותה גומייה נמתחת <b>אדיאבטית</b>. למה אי אפשר לחשב, ומה חסר?</li><li class="step" data-ord="2">(ג) ★ ארבע המשקולות: מורידים אחת-אחת (<span class="m">−884 J</span>) ומחזירים אחת-אחת. <span class="m">∮đW</span>? ולאן הוא שואף באינסוף צעדים?</li></ul>
+  <div class="box key step" data-ord="3"><b class="tag">על הלוח</b>(א) <span class="m">W = ∫κT(L − L<sub>0</sub>) dL = ½κTL<sub>0</sub><sup>2</sup></span>; <span class="m">[κ] = N m⁻¹ K⁻¹</span> ולכן <span class="m">N m⁻¹ K⁻¹ · K · m² = J</span> ✓. (ב) באדיאבטי <span class="m">T</span> משתנה עם <span class="m">L</span> ואין לנו את הקשר — צריך קיבול חום (יחידה 3). (ג) החזרה בארבעה צעדים <span class="m">+961 J</span> — מדרגות <b>מעל</b> העקומה; <span class="m">∮ = 961 − 884 = +77 J</span>. בגבול — אפס. ההפיך הוא המעגל היחיד שלא עולה כלום.</div>
+</section>
+
+<section class="slide" data-part="טעויות" data-title="טעויות קלאסיות">
+  <div class="eyebrow">טעויות קלאסיות · כ-8 דקות</div>
+  <h2>שבע טעויות שגובות ניקוד</h2>
+  <div class="cols"><div class="txt">
+    <ul class="big"><li><b><span class="m">p</span> במקום <span class="m">p<sub>ex</sub></span>.</b> בבלתי הפיך העבודה כנגד הלחץ <b>החיצוני</b>. ללחץ הגז באמצע דחיסה מהירה אין ערך.</li><li class="step" data-ord="1"><b>איזותרמי = בלי חום.</b> הפוך: חום זורם כל הזמן.</li><li class="step" data-ord="1"><b>אדיאבטי = <span class="m">T</span> קבועה.</b> דחיסה אדיאבטית מחממת.</li><li class="step" data-ord="2"><b>איטי = הפיך.</b> ערבוב דרך חריר: איטי ובלתי הפיך. הכרחי, לא מספיק.</li></ul>
+  </div><div class="txt">
+    <ul class="big"><li class="step" data-ord="3"><b>שיווי משקל = כלום לא משתנה.</b> שאלו ״האם משהו זורם״. קיר בחורף — מצב עמיד.</li><li class="step" data-ord="4"><b>סימן העבודה.</b> <span class="m">đW &gt; 0</span> על המערכת. בגז מינוס ב-<span class="m">−p dV</span>, בגומייה <span class="m">+f dL</span>. מהפיזיקה.</li><li class="step" data-ord="5"><b>״<span class="m">ΔU = 0</span> באיזותרמי״</b> — נכון רק לגז אידיאלי. <span class="m">U = aVT<sup>4</sup></span> תלוי גם ב-<span class="m">V</span>.</li></ul>
+  </div></div>
+</section>
+
+<section class="slide" data-part="סיכום" data-title="ארבע שורות">
+  <div class="eyebrow">סיכום · כ-9 דקות</div>
+  <h2>ארבע שורות שמסכמות את המפגש</h2>
+  <ul class="big check"><li><b>שלושה משתנים</b> מגדירים מצב; באים בצמדים <span class="m">(V,p), (S,T), (n,μ)</span>, ומכפלתם אנרגיה: <span class="m">dU = T dS − p dV + μ dn</span>.</li><li class="step" data-ord="1"><b>מגע</b> קובע איזה אינטנסיבי משתווה; שיווי משקל = אין זרמים, ולא ״כלום לא משתנה״.</li><li class="step" data-ord="2"><b>תהליכים</b>: כופים רק את החוץ. הפיך = אינסוף מצבי שיווי משקל = עבודה מרבית. איטי ≠ הפיך.</li><li class="step" data-ord="3"><b>עבודה</b> <span class="m">đW = −p<sub>ex</sub> dV</span>, ובכלליות <span class="m">X dY</span>. מעגל של עבודה איננו אפס בעוד <span class="m">∮dU = 0</span> — ולכן קיים חום.</li></ul>
+  <div class="box warn step" data-ord="4"><b class="tag">לקראת הבוחן — בעל פה</b>מבחן ההכפלה, שלושת הצמדים והמשוואה היסודית, שלושת סוגי המגע ומה משתווה, ההגדרות של ארבעת התהליכים ושל הפיך, <span class="m">đW = −p<sub>ex</sub> dV</span> והכללתה ל-<span class="m">X dY</span>. שאלת הפיתוח: ״נתונה <span class="m">Y(X,T)</span>; העבודה באיזותרמי״ — דיפרנציאל שלם, אילוץ, משתנה אחד, אינטגרל.</div>
+  <div class="box quote step" data-ord="5"><b class="tag">💬 מה הלאה</b>תרגיל בית 2 עולה הערב: חלק ג שלו יושב על לשונית המשחק בסימולציה ״הבוכנה״ — כל אחד מקבל משקולות ונפח משלו. בשבוע הבא: גזים — למה ״גז אידיאלי״ הוא גבול, ומה קורה כשמתקרבים לנוזל.</div>
+</section>
+
+<section class="slide divider" data-part="סיכום" data-title="שער סיום">
+  <div class="eyebrow">יחידה 1 · סוף</div>
+  <h1>גז זה לא קפיץ</h1>
+  <div class="sub">בשבוע הבא: יחידה 2 — גזים</div>
+  <div class="topics"><span>dU = T dS − p dV + μ dn</span><span>T · p · μ</span><span>p<sub>ex</sub></span><span>X dY</span><span>∮đW = 308 J</span></div>
+  <div class="by">ד״ר עומרי מורג</div>
+</section>
+
+</div>
+<footer id="foot">
+  <button id="prevb">◀ אחורה</button>
+  <button id="nextb">קדימה ▶</button>
+  <span class="cnt" id="cnt">1 / 1</span>
+  <span id="prog"><div></div></span>
+  <span class="hint">רווח או חץ שמאלה — צעד קדימה · חץ ימינה — אחורה</span>
+</footer>
+</div>
+<div id="toc"><div class="card"><h3>מפת השקפים</h3><div id="toclist"></div></div></div>
+<script>
+/* ============ מנוע המצגת ============ */
+const slides=[...document.querySelectorAll(".slide")];
+let cur=0;
+const chip=document.getElementById("partchip"),
+      cnt=document.getElementById("cnt"),
+      prog=document.querySelector("#prog>div");
+
+function stepsOf(s){ return [...s.querySelectorAll(".step")]; }
+/* שלבים עם אותו data-ord נחשפים יחד — כך עקומה בגרף מופיעה
+   באותה לחיצה עם השורה בטקסט שמדברת עליה                     */
+function groupsOf(s){
+  const els=stepsOf(s), map=new Map(), groups=[];
+  els.forEach((e,i)=>{
+    const k=(e.dataset.ord!==undefined)?("o"+e.dataset.ord):("i"+i);
+    if(!map.has(k)){ const g=[]; map.set(k,g); groups.push(g); }
+    map.get(k).push(e);
+  });
+  return groups;
+}
+function show(i, fromEnd=false){
+  slides[cur].classList.remove("on");
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  const s=slides[cur];
+  s.classList.add("on"); s.scrollTop=0;
+  stepsOf(s).forEach(e=>e.classList.toggle("on", fromEnd));
+  chip.textContent=s.dataset.part||"";
+  cnt.textContent=(cur+1)+" / "+slides.length;
+  prog.style.width=(100*(cur+1)/slides.length)+"%";
+}
+function next(){
+  const g=groupsOf(slides[cur]).find(g=>g.some(e=>!e.classList.contains("on")));
+  if(g){ g.forEach(e=>e.classList.add("on"));
+    g[0].scrollIntoView({block:"nearest",behavior:"smooth"}); return; }
+  if(cur<slides.length-1) show(cur+1);
+}
+function prev(){
+  const g=[...groupsOf(slides[cur])].reverse().find(g=>g.some(e=>e.classList.contains("on")));
+  if(g){ g.forEach(e=>e.classList.remove("on")); return; }
+  if(cur>0) show(cur-1, true);
+}
+document.getElementById("nextb").onclick=next;
+document.getElementById("prevb").onclick=prev;
+document.getElementById("stage").addEventListener("click", e=>{
+  if(e.target.closest("a,button")) return; next();
+});
+addEventListener("keydown", e=>{
+  if(e.key===" "||e.key==="Enter"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault(); next();}
+  else if(e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault(); prev();}
+  else if(e.key==="Home"){show(0)} else if(e.key==="End"){show(slides.length-1,true)}
+});
+/* מפת שקפים */
+const toc=document.getElementById("toc");
+document.getElementById("tocbtn").onclick=()=>toc.classList.add("on");
+toc.addEventListener("click",e=>{ if(e.target===toc) toc.classList.remove("on"); });
+const groups={};
+slides.forEach((s,i)=>{ const p=s.dataset.part||"שער";
+  (groups[p]=groups[p]||[]).push({i, t:s.dataset.title||("שקף "+(i+1))}); });
+document.getElementById("toclist").innerHTML=Object.entries(groups).map(([p,arr])=>
+  `<div class="grp"><b>${p}</b>`+arr.map(o=>
+    `<button class="jump" data-i="${o.i}">${o.t}</button>`).join("")+`</div>`).join("");
+document.querySelectorAll("#toc .jump").forEach(b=>b.onclick=()=>{ toc.classList.remove("on"); show(+b.dataset.i); });
+show(0);
+</script>
+</body>
+</html>

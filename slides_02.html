@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>יחידה 2 · משוואות מצב של גזים — מצגת</title>
+<style>
+/* ============ פלטת הבית — תואמת את המערכים המודפסים ============ */
+:root{
+  --navy:#1F4E79; --terra:#C0553A; --parch:#FBF8F1; --gold:#D9A441;
+  --green:#2E6F40; --ink:#1c2733; --panel:#ffffff; --muted:#5a6a7a;
+  --line:#DDE3EC; --grid:#c9d4de;
+  --accent:var(--navy);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  font-family:"Heebo","Assistant","Arial Hebrew",system-ui,sans-serif;
+  background:var(--parch); color:var(--ink); overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ============ מעטפת ============ */
+#deck{position:fixed; inset:0; display:flex; flex-direction:column}
+header#bar{
+  display:flex; align-items:center; gap:14px; padding:10px 22px;
+  background:var(--navy); color:#fff; flex:0 0 auto; z-index:5;
+}
+header#bar .t{font-weight:800; font-size:17px; letter-spacing:.2px}
+header#bar .part-chip{
+  background:rgba(255,255,255,.14); border-radius:999px; padding:3px 14px;
+  font-size:13.5px; font-weight:700;
+}
+header#bar .sp{flex:1}
+header#bar a.simlink, header#bar button{
+  background:var(--gold); color:var(--navy); border:none; border-radius:9px;
+  padding:7px 14px; font-family:inherit; font-weight:800; font-size:13.5px;
+  cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+}
+header#bar button.ghost{background:rgba(255,255,255,.14); color:#fff}
+#stage{flex:1; position:relative; overflow:hidden}
+/* ============ שקף ============ */
+.slide{
+  position:absolute; inset:0; padding:34px clamp(28px,5vw,84px) 64px;
+  display:none; flex-direction:column; overflow:auto;
+}
+.slide.on{display:flex; animation:fadein .28s ease}
+@keyframes fadein{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.slide .eyebrow{
+  color:var(--accent); font-weight:800; font-size:clamp(14px,1.5vw,17px);
+  letter-spacing:.4px; margin-bottom:4px;
+}
+.slide h2{
+  font-size:clamp(26px,3.6vw,44px); font-weight:900; color:var(--navy);
+  line-height:1.15; margin-bottom:18px;
+}
+.slide h2 .thin{font-weight:400; color:var(--muted)}
+.lead{font-size:clamp(17px,1.9vw,23px); line-height:1.55; max-width:1050px}
+.cols{display:flex; gap:clamp(18px,3vw,44px); align-items:flex-start; flex:1; min-height:0}
+.cols>.txt{flex:1.15; min-width:0}
+.cols>.fig{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+.cols>.fig svg{width:100%; height:auto; max-height:56vh}
+/* ============ שלבים ============ */
+.step{visibility:hidden}
+.step.on{visibility:visible; animation:stepin .3s ease}
+@keyframes stepin{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+svg .step{opacity:0; transition:opacity .3s ease}
+svg .step.on{opacity:1; animation:none; visibility:visible}
+/* ============ קופסאות התוכן — כמו במערך המודפס ============ */
+.box{border-radius:14px; padding:16px 20px; margin:12px 0; font-size:clamp(15.5px,1.7vw,20px); line-height:1.55}
+.box b.tag{display:block; font-size:.86em; margin-bottom:6px; font-weight:900}
+.box.idea{background:#e9f0e9; border-inline-start:5px solid var(--green)}
+.box.idea b.tag{color:var(--green)}
+.box.mistake{background:#f6e7e2; border-inline-start:5px solid var(--terra)}
+.box.mistake b.tag{color:var(--terra)}
+.box.think{background:#efe9d8; border-inline-start:5px solid var(--gold)}
+.box.think b.tag{color:#8a6f1a}
+.box.chem{background:#e7edf3; border-inline-start:5px solid var(--navy)}
+.box.chem b.tag{color:var(--navy)}
+/* ============ מתמטיקה — איי LTR, בלי ספריות ============ */
+.m{direction:ltr; unicode-bidi:isolate; display:inline-block;
+   font-family:"STIX Two Math","Cambria Math",Georgia,"Times New Roman",serif;
+   font-size:1.12em; white-space:nowrap}
+/* the integral sign — the fallback serif glyph is short and slanted; scale it to a real
+   math integral and keep the baseline steady. */
+/* ---- integration-by-parts formula banner + colour map for u and dv ---- */
+.pbf{display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+   gap:10px 18px; border:2px solid var(--navy); border-radius:14px;
+   background:#fff; padding:7px 18px; margin:6px auto 8px;
+   max-width:min(97%,980px)}
+.pbf-lab{font-weight:800; color:var(--navy); background:var(--parch);
+   border-radius:999px; padding:3px 13px; white-space:nowrap;
+   font-size:clamp(12px,1.15vw,15px)}
+.pbf-math{direction:ltr; font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+   font-size:clamp(19px,2.15vw,27px); line-height:1.45; white-space:nowrap}
+.pbf-key{font-size:clamp(11px,1.05vw,13.5px); color:var(--muted,#6B7280);
+   line-height:1.35}
+.pu{color:#B8482C; font-weight:600}
+.pv{color:#2E6F40; font-weight:600}
+/* ---- display integral / sigma: drawn as SVG, so the shape and the position of
+   the limits are identical on every device and depend on no installed font ---- */
+.intg{display:inline-flex; align-items:stretch; direction:ltr;
+   height:1.85em; vertical-align:-.645em; margin-inline-end:.10em}
+.intg > svg{height:100%; width:auto; display:block; fill:currentColor; overflow:visible}
+.intg.bare{margin-inline-end:.16em}
+.intg > .lims{display:flex; flex-direction:column; justify-content:space-between;
+   height:calc(100% + .88em); align-self:center; margin-inline-start:.05em;
+   margin-inline-end:.06em; line-height:1}
+.intg > .lims i{font-size:.55em; display:block; font-style:normal; white-space:nowrap}
+/* הגבול התחתון נצמד לוו התחתון של סימן האינטגרל, שנוטה שמאלה — כמו b שנצמד לוו העליון */
+.intg > .lims i.d{transform:translateX(-1.30em)}
+/* sigma: limits centred directly above and below the symbol */
+.sumg{display:inline-block; position:relative; direction:ltr;
+   height:1.30em; width:1.00em; vertical-align:-.37em; margin-inline:.62em}
+.sumg > svg{position:absolute; left:0; top:0; height:100%; width:auto;
+   display:block; fill:currentColor}
+.sumg > i{position:absolute; left:50%; transform:translateX(-50%);
+   font-size:.50em; font-style:normal; white-space:nowrap; line-height:1}
+.sumg > i:first-child{bottom:calc(100% + .10em)}
+.sumg > i:last-child{top:calc(100% + .10em)}
+/* evaluation bracket: brackets drawn with borders so they scale, limits spread over them */
+.evb{display:inline-flex; align-items:center; direction:ltr; height:1.45em;
+   vertical-align:-.42em; margin-inline-end:.06em}
+.evb.tall{height:2.30em; vertical-align:-.86em}
+.evb > .eb{width:.20em; height:100%; border:.055em solid currentColor;
+   box-sizing:border-box; flex:0 0 auto}
+.evb > .eb.l{border-right:0}
+.evb > .eb.r{border-left:0}
+.evb > .ebc{display:flex; align-items:center; height:100%; padding:0 .18em}
+.evb > .lims{display:flex; flex-direction:column; justify-content:space-between;
+   height:calc(100% + .72em); align-self:center; margin-inline-start:.07em;
+   margin-inline-end:.05em; line-height:1}
+.evb > .lims i{font-size:.55em; font-style:normal; display:block; white-space:nowrap}
+.mline{direction:ltr; display:block; text-align:center; margin:10px auto;
+   font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+   font-size:clamp(19px,2.3vw,27px); line-height:1.7}
+.mrow{direction:ltr; display:flex; align-items:center; justify-content:center; gap:.35em; flex-wrap:wrap}
+.frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; direction:ltr; line-height:1.15}
+.frac>.nu{border-bottom:1.6px solid currentColor; padding:0 .3em}
+.frac>.de{padding:0 .3em}
+.sqrt{display:inline-block; direction:ltr; white-space:nowrap; line-height:1.25}
+.sqrt::before{content:"√"; font-size:1.02em}
+.sqrt>.rad{display:inline-block; border-top:1.5px solid currentColor;
+  padding:.1em .28em 0 .16em; margin-left:-0.29em; line-height:1.1}
+.cases{display:inline-flex; align-items:center; direction:ltr}
+.cases::before{content:"{"; font-size:2.4em; font-weight:300; line-height:1; margin-inline-end:.15em}
+.cases table{border-collapse:collapse}
+.cases td{padding:.06em .5em; text-align:left}
+.hl{background:#f3e7c3; border-radius:6px; padding:0 .28em; box-decoration-break:clone}
+ol.chain{margin:8px 8px 10px 0; padding-inline-start:22px; line-height:1.65; font-size:clamp(14px,1.28vw,18px)}
+ol.chain li{margin-bottom:3px}
+.res{color:var(--green); font-weight:700}
+.why{display:block; direction:rtl; text-align:right; unicode-bidi:isolate;
+     margin:4px 0 10px; padding-inline-start:10px;
+     border-inline-start:3px solid var(--gold);
+     font-size:clamp(13px,1.12vw,16px); font-weight:400; line-height:1.5;
+     color:var(--muted); font-family:"Heebo","Assistant",system-ui,sans-serif}
+.why b{color:var(--navy); font-weight:700}
+.warnc{color:var(--terra); font-weight:700}
+/* ============ רשימות ותקצירים ============ */
+ul.big{list-style:none; margin-top:6px}
+ul.big li{
+  position:relative; padding:9px 34px 9px 6px; font-size:clamp(16px,1.85vw,22px); line-height:1.5;
+}
+ul.big li::before{content:"◆"; position:absolute; right:6px; top:11px; color:var(--gold); font-size:.8em}
+ul.check li::before{content:"✓"; color:var(--green); font-weight:900; font-size:1em; top:9px}
+/* ============ באנר סימולציה ============ */
+.simbanner{
+  display:flex; align-items:center; gap:18px; background:var(--navy); color:#fff;
+  border-radius:16px; padding:18px 24px; margin-top:18px; text-decoration:none;
+  box-shadow:0 6px 20px rgba(15,46,76,.25);
+}
+.simbanner .ic{font-size:34px}
+.simbanner .tx b{display:block; font-size:clamp(16px,1.9vw,21px)}
+.simbanner .tx span{font-size:clamp(13px,1.4vw,16px); opacity:.85}
+.simbanner .go{margin-inline-start:auto; background:var(--gold); color:var(--navy);
+  border-radius:10px; padding:9px 18px; font-weight:900; white-space:nowrap}
+/* ============ שקף שער-חלק ============ */
+.slide.divider{justify-content:center; align-items:center; text-align:center}
+.slide.divider .big-num{
+  width:92px; height:92px; border-radius:26px; display:flex; align-items:center; justify-content:center;
+  font-size:44px; font-weight:900; color:#fff; background:var(--accent); margin-bottom:20px;
+}
+.slide.divider h2{font-size:clamp(34px,5vw,58px)}
+.slide.divider .sub{font-size:clamp(17px,2vw,24px); color:var(--muted); max-width:820px}
+/* ============ שער ראשי ============ */
+.slide.title{justify-content:center; text-align:center; background:
+  linear-gradient(160deg,#1F4E79 0%, #24608f 60%, #2A9D8F 100%); color:#fff}
+.slide.title .eyebrow{color:var(--gold)}
+.slide.title h1{font-size:clamp(38px,6vw,72px); font-weight:900; line-height:1.12; margin:8px 0 16px}
+.slide.title .topics, .slide.divider .topics{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:18px 0}
+.slide.title .topics span, .slide.divider .topics span{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+  border-radius:999px; padding:7px 18px; font-size:clamp(13px,1.5vw,17px)}
+.slide.title .who{margin-top:26px; font-size:clamp(15px,1.7vw,19px); opacity:.9}
+/* ============ סרגל תחתון ============ */
+#foot{
+  position:fixed; bottom:0; right:0; left:0; height:44px; display:flex; align-items:center;
+  gap:14px; padding:0 20px; background:rgba(15,46,76,.94); color:#fff; font-size:13px; z-index:6;
+}
+#foot #prog{flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.18); overflow:hidden}
+#foot #prog>div{height:100%; width:0; background:var(--gold); transition:width .25s ease}
+#foot .cnt{font-variant-numeric:tabular-nums; direction:ltr}
+#foot .hint{opacity:.75}
+#foot button{background:none; border:1px solid rgba(255,255,255,.35); color:#fff; border-radius:7px;
+  padding:3px 12px; font-family:inherit; font-size:12.5px; cursor:pointer}
+/* ============ מפת שקפים ============ */
+#toc{position:fixed; inset:0; background:rgba(15,25,35,.6); display:none; z-index:20;
+  align-items:center; justify-content:center}
+#toc.on{display:flex}
+#toc .card{background:var(--panel); border-radius:18px; padding:26px 30px; width:min(860px,92vw);
+  max-height:84vh; overflow:auto}
+#toc h3{color:var(--navy); margin-bottom:14px; font-size:22px}
+#toc .grp{margin-bottom:10px}
+#toc .grp b{display:block; color:var(--muted); font-size:13px; margin:8px 0 4px}
+#toc button.jump{display:inline-block; margin:3px; background:#eef2f6; border:1px solid var(--grid);
+  border-radius:8px; padding:6px 12px; font-family:inherit; font-size:13.5px; cursor:pointer; color:var(--ink)}
+#toc button.jump:hover{background:var(--gold); color:var(--navy)}
+/* גרפים */
+svg text{font-family:"Heebo",system-ui,sans-serif; direction:ltr; unicode-bidi:plaintext;
+  paint-order:stroke fill; stroke:#FBF8F1; stroke-width:4.5px;
+  stroke-linejoin:round; stroke-linecap:round}
+svg .ax{stroke:var(--navy); stroke-width:2.4}
+svg .zero{font-size:12px; fill:var(--muted)}
+svg .gridl{stroke:var(--grid); stroke-width:.7}
+svg .c1{stroke:var(--navy); stroke-width:3; fill:none}
+svg .c2{stroke:var(--terra); stroke-width:3; fill:none}
+svg .c3{stroke:var(--green); stroke-width:3; fill:none}
+svg .cg{stroke:#9aa7b4; stroke-width:2.2; fill:none; stroke-dasharray:6 5}
+svg .cgold{stroke:var(--gold); stroke-width:2.4; fill:none; stroke-dasharray:7 5}
+svg .lbl{font-size:15px; font-weight:700; fill:var(--navy)}
+svg .num{font-size:13.5px; fill:var(--ink)}
+@media (max-width:760px){
+  .cols{flex-direction:column}
+  .slide{padding:20px 18px 60px}
+}
+.cols{flex:0 0 auto}
+
+/* ---- תוספות מפגש 6 ---- */
+/* בידוד ביד״י לביטוי מתמטי קצר בתוך פסקה עברית.
+   בלי זה — ערך מוחלט, מינוס וסוגריים מתהפכים. */
+.ltr{direction:ltr; unicode-bidi:isolate; display:inline-block}
+ul.idlist{margin:6px 0 10px; padding-inline-start:20px; line-height:1.75}
+ul.idlist li{margin-bottom:7px}
+.tblwrap{overflow-x:auto; margin:8px 0}
+table.rules{border-collapse:collapse; width:100%; font-size:14.5px;
+  direction:ltr; unicode-bidi:isolate}
+table.rules th,table.rules td{border:1px solid var(--grid); padding:6px 9px; text-align:center}
+table.rules th{background:#eef2f6; color:var(--muted); font-weight:800; font-size:13px}
+table.rules td.he{direction:rtl; unicode-bidi:isolate; font-size:13.5px; color:var(--muted)}
+table.rules td.pos{color:var(--green); font-weight:800}
+table.rules td.neg{color:var(--terra); font-weight:800}
+.cap{width:100%; text-align:right; font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.6}
+.txt.wide{max-width:none}
+
+/* ---- קו השבר לא נוגע בביטוי שמעליו ---- */
+/* בלי הרווח הזה הקו האנכי של |x| מתלכד עם קו השבר, והערך המוחלט נקרא כמו מסגרת */
+.frac>.nu{padding:0 .34em 2.5px}
+.frac>.de{padding:2.5px .34em 0}
+
+/* ---- כרטיסי שלושה ---- */
+.cards3{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(10px,1.6vw,20px);
+  margin:10px 0 4px}
+.cards3 .card{background:var(--panel); border:1.5px solid var(--line); border-radius:14px;
+  padding:12px 14px 14px; border-top:5px solid var(--accent)}
+.cards3 .card h4{color:var(--navy); font-size:clamp(15px,1.7vw,19px); margin-bottom:6px;
+  font-weight:900; direction:ltr; text-align:center}
+.cards3 .card .ln{text-align:center; font-size:clamp(13px,1.4vw,16px); line-height:1.8; margin:2px 0}
+.cards3 .card .fin{background:#f3e7c3; border-radius:8px; padding:5px 8px; margin-top:7px;
+  font-weight:800; text-align:center}
+@media (max-width:900px){ .cards3{grid-template-columns:1fr} }
+/* ---- רצועת התחנה: מה בודקים · הבדיקה · המסקנה ---- */
+.chainstrip{background:var(--panel); border:1.5px solid var(--line);
+  border-right:5px solid var(--navy); border-radius:12px;
+  padding:6px 12px 8px; margin:10px 0 12px}
+.chainstrip .crow{display:flex; align-items:center; gap:12px; padding:6px 0; flex-wrap:wrap}
+.chainstrip .crow + .crow{border-top:1px dashed var(--line)}
+.chainstrip .clab{flex:0 0 auto; font-size:clamp(11px,1.1vw,12.5px); font-weight:800;
+  color:#fff; border-radius:999px; padding:3px 11px; white-space:nowrap; background:var(--muted)}
+.chainstrip .clab.chk{background:var(--navy)}
+.chainstrip .clab.side{background:var(--terra)}
+.chainstrip .clab.fin{background:var(--green)}
+.chainstrip .cmath{flex:0 1 auto; direction:ltr; text-align:left;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(14px,1.5vw,17.5px); line-height:1.7; color:var(--ink)}
+.chainstrip .cmath.wide{flex:1 1 auto; text-align:center}
+.chainstrip .cd{flex:1 1 auto; direction:ltr; text-align:left; color:var(--muted);
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(12.5px,1.35vw,16px)}
+/* טקסט עברי ברצועה — חייב RTL. בלי זה סדר המילים נשבר, ו-lint_rtl נכשל. */
+.chainstrip .cd.he{direction:rtl; text-align:right; unicode-bidi:isolate;
+  font-family:"Heebo",system-ui,sans-serif; font-size:clamp(12px,1.28vw,14.5px)}
+.chainstrip .cmath.he{direction:rtl; text-align:right; unicode-bidi:isolate;
+  font-family:"Heebo",system-ui,sans-serif; font-size:clamp(13px,1.4vw,16px);
+  color:var(--ink)}
+.chainstrip .cmath.wide.he{text-align:center}
+.chainstrip .crow.res{background:#f7f3e6; border-radius:8px; margin-top:4px; padding:8px 10px}
+.chainstrip .crow.res .cmath{color:var(--green); font-weight:800}
+.chainstrip .cmath sub,.chainstrip .cd sub{font-size:.62em; vertical-align:-.25em}
+.chainstrip .cmath sup,.chainstrip .cd sup{font-size:.68em}
+@media (max-width:900px){ .chainstrip .crow{flex-direction:column; align-items:stretch; gap:4px}
+  .chainstrip .cmath,.chainstrip .cd{text-align:center}
+  .chainstrip .cd.he{text-align:right} }
+/* ---- טבלת הסימנים ---- */
+.sgt{background:var(--panel); border:1.5px solid var(--line);
+  border-right:5px solid var(--gold); border-radius:12px;
+  padding:8px 12px 6px; margin:10px 0 12px; direction:ltr}
+.sgt .sgrow{display:flex; align-items:stretch; gap:10px}
+.sgt .sgrow + .sgrow{border-top:1px solid var(--line)}
+.sgt .slab{flex:0 0 clamp(50px,6vw,74px); display:flex; align-items:center;
+  justify-content:center; font-weight:800; color:var(--navy);
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(13px,1.45vw,17px); direction:ltr}
+.sgt .slab.he{direction:rtl; unicode-bidi:isolate; font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.2vw,14px); color:var(--muted)}
+.sgt .sg{flex:1 1 auto; display:grid; align-items:center}
+.sgt .sg>span{display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:6px 2px; min-height:34px; line-height:1.35;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(13.5px,1.5vw,18px); color:var(--ink)}
+.sgt .sg>span.he{direction:rtl; unicode-bidi:isolate; font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.22vw,14.5px); font-weight:700}
+.sgt .sg>span.mk{background:#f3ece0; font-weight:800; color:var(--terra);
+  border-left:1px dashed var(--line); border-right:1px dashed var(--line)}
+.sgt .sgrow.axis .sg>span.mk{color:var(--navy); font-size:clamp(13px,1.4vw,16.5px)}
+.sgt .sgrow.axis{border-bottom:2px solid var(--line)}
+.sgt .sgcap{direction:rtl; text-align:right; color:var(--muted); font-family:"Heebo",system-ui,sans-serif;
+  font-size:clamp(11.5px,1.2vw,14px); padding:6px 2px 2px; border-top:1px dashed var(--line);
+  margin-top:2px; line-height:1.6}
+@media (max-width:760px){ .sgt .sg>span{font-size:clamp(12px,3.2vw,15px); min-height:30px}
+  .sgt .sg>span.he{font-size:clamp(10.5px,2.6vw,13px)} }
+/* ---- טקסט עברי בתוך מכל LTR ---- */
+.he{direction:rtl; unicode-bidi:isolate}
+.mline.he{text-align:center}
+/* ---- כללי ---- */
+.frac{vertical-align:middle; margin:0 .14em}
+.m .frac, .lead .frac, .box .frac, .chainstrip .frac{font-size:.94em}
+.frac>.nu{border-bottom-width:1.6px}
+svg .c1{stroke:var(--navy)} svg .c2{stroke:var(--terra)} svg .c3{stroke:var(--green)}
+.cols>.fig svg{max-height:50vh}
+.box.chem ul.idlist{margin-bottom:0}
+.mline sub{font-size:.62em; vertical-align:-.25em}
+.mline sup{font-size:.68em}
+.mline.big{font-size:clamp(19px,2.2vw,29px)}
+.m sup{font-size:.7em} .m sub{font-size:.64em; vertical-align:-.25em}
+table.rules th{white-space:nowrap}
+.slide .fig .box{font-size:clamp(13px,1.35vw,16px)}
+.slide.divider .by{margin-top:18px; font-size:clamp(14px,1.5vw,18px); color:var(--muted)}
+
+/* התוצאה של שלב בשרשרת — צמודה לחישוב ומודגשת, לא הערת שוליים בקצה */
+.chainstrip .cres{flex:0 0 auto; background:#f6ecd0;
+  border:1.5px solid var(--gold); border-radius:9px; padding:2px 12px 3px;
+  color:var(--navy); font-weight:800; text-align:center;
+  font-size:clamp(13.5px,1.45vw,17px)}
+@media (max-width:760px){ .chainstrip .cres{align-self:flex-start} }
+
+/* שרשרת מוגדלת — לחקירה המלאה, שבה כל שלב צריך להיקרא מהשורה האחרונה בכיתה */
+.chainstrip.zoom{padding:10px 16px 14px}
+.chainstrip.zoom .crow{gap:16px; padding:10px 0}
+.chainstrip.zoom .cmath{font-size:clamp(17px,2.05vw,25px); line-height:1.9}
+.chainstrip.zoom .clab{font-size:clamp(11.5px,1.2vw,13.5px); padding:4px 13px}
+.chainstrip.zoom .cd.he{font-size:clamp(12.5px,1.35vw,15px)}
+.chainstrip.zoom .cres{font-size:clamp(15px,1.7vw,20px)}
+
+/* קופסאות שהיו בשימוש בלי הגדרה (מצגות 7–10): key · warn · quote */
+.box.key{background:#e9f0e9; border-inline-start:5px solid var(--green)}
+.box.key b.tag{color:var(--green)}
+.box.warn{background:#f6e7e2; border-inline-start:5px solid var(--terra)}
+.box.warn b.tag{color:var(--terra)}
+.box.quote{background:#eaeff5; border-inline-start:5px solid var(--navy)}
+.box.quote b.tag{color:var(--navy)}
+/* שער חלק — כותרת ראשית בגודל של כותרת שער (במצגות 9–10 נשענה על ברירת המחדל של הדפדפן) */
+.slide.divider h1{font-size:clamp(34px,5vw,58px); font-weight:900; color:var(--navy); line-height:1.15; margin-bottom:12px}
+.slide.divider .sub{margin-bottom:4px}
+/* מפגש 11 — סימן האינטגרל וגבולותיו */
+.m sub, .mline sub, .chainstrip sub{font-size:.62em; vertical-align:-.25em}
+.slide{padding-bottom:30px}
+ul.big li{padding-top:7px; padding-bottom:7px}
+/* שרשרת ארוכה — אותו גודל קריא, ריווח צפוף יותר, כדי שכל השלבים ייכנסו לשקף */
+.chainstrip.zoom.tight{padding:6px 14px 10px}
+.chainstrip.zoom.tight .crow{padding:6px 0; gap:12px}
+.chainstrip.zoom.tight .cmath{font-size:clamp(16px,1.85vw,22px); line-height:1.75}
+.chainstrip.zoom.tight .crow.res{margin-top:2px; padding:6px 10px}
+/* טבלה מוגדלת — כשהטבלה היא כל תוכן השקף */
+table.rules.big td, table.rules.big td.he, table.rules.big th, table.rules.big th.he{font-size:clamp(16px,1.7vw,21px); padding:10px 14px; line-height:1.5}
+table.rules th.he{direction:rtl; unicode-bidi:isolate}
+
+/* ---- יחידה 2 ---- */
+.box.chem{background:#EAF4F2; border-inline-start:5px solid #1E7A6E}
+.box.chem b.tag{color:#1E7A6E}
+.slide.divider .big-num{font-family:"Heebo",system-ui,sans-serif}
+.mline sub{font-size:.62em; vertical-align:-.25em}
+.cmath sub{font-size:.62em; vertical-align:-.25em}
+.cards3 .card h4 sub{font-size:.6em}
+.slide.title .topics span sub{font-size:.6em}
+</style>
+</head>
+<body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="gi" viewBox="0 0 979 2269"><path d="M224 2010C191 2143 165 2231 100 2231C91 2231 85 2227 85 2219C87 2207 108 2193 108 2169C108 2147 89 2139 70 2139C31 2139 0 2172 0 2215C0 2244 21 2269 72 2269C211 2269 288 2144 333 1963L752 259C784 129 813 38 878 38C887 38 893 42 893 49C891 63 870 73 870 100C870 122 889 130 908 130C947 130 979 97 979 55C979 25 958 0 906 0C764 0 686 135 638 330Z"/></symbol><symbol id="gsum" viewBox="0 0 1112 1450"><path d="M1112 1034H1073C1037 1198 968 1267 829 1267H261L731 654L320 90H697C732 90 775 91 803 95C870 103 937 155 965 286C969 306 976 332 976 351H1012V0H36L557 715L0 1450H1038Z"/></symbol></defs></svg>
+<div id="deck">
+<header id="bar">
+  <span class="t">יחידה 2 · משוואות מצב של גזים</span>
+  <span class="part-chip" id="partchip">שער</span>
+  <span class="sp"></span>
+  <a class="simlink" href="sim_realgas.html" target="_blank" rel="noopener">🧪 הסימולציה</a>
+  <button class="ghost" id="tocbtn">מפת השקפים</button>
+</header>
+<div id="stage">
+<section class="slide title" data-part="שער" data-title="שער היחידה">
+  <div class="eyebrow">תרמודינמיקה לכימאים · יחידה 2 · מפגש 4</div>
+  <h1>משוואות מצב של גזים</h1>
+  <div class="topics"><span>גז אידיאלי כגבול</span><span>דלטון ו״לחץ חלקי״</span><span>Z = pv/RT</span><span>Z = 1 + B<sub>2</sub>ρ + …</span><span>טמפרטורת בויל</span></div>
+  <div class="who">ד״ר עומרי מורג · בית הספר לכימיה · 18.11.2026</div>
+</section>
+
+<section class="slide" data-part="פתיחה" data-title="מתי גז הוא אידיאלי">
+  <div class="eyebrow">פתיחה · כ-8 דקות</div>
+  <h2>חנקן ב-<span class="m">100 bar</span>: מה הנפח המולרי?</h2>
+  <p class="lead">התשובה האוטומטית: <span class="m">v = RT/p</span>. נבדוק מול מדידה בשלוש טמפרטורות.</p>
+  <div class="tblwrap"><table class="rules">
+    <tr><th class="he">חנקן ב-100 בר</th><th>150 K</th><th>200 K</th><th>300 K</th></tr>
+    <tr><td>RT/p  [L mol⁻¹]</td><td>0.1247</td><td>0.1663</td><td>0.2494</td></tr>
+    <tr class="step" data-ord="1"><td class="he">v נמדד</td><td>0.0668</td><td>0.1405</td><td>0.2507</td></tr>
+    <tr class="step" data-ord="2"><td class="he">היחס</td><td><b>0.536</b></td><td><b>0.845</b></td><td><b>1.005</b></td></tr>
+  </table></div>
+  <div class="box think step" data-ord="3"><b class="tag">מה קרה?</b>החנקן לא השתנה. מה שהשתנה זה שהמולקולות התקרבו זו לזו והתחילו להרגיש אחת את השנייה. <b>גז אידיאלי הוא לא סוג של גז — הוא גבול.</b> והשאלה המעניינת: <b>כמה</b> הגז לא אידיאלי, ומה זה מספר על המולקולות.</div>
+</section>
+
+<section class="slide" data-part="פתיחה" data-title="מפת המפגש">
+  <div class="eyebrow">פתיחה · ארבעה חלקים, והמשך בבית</div>
+  <h2>מה נבנה היום, ומה נבחן</h2>
+  <div class="cards3">
+    <div class="card" style="--accent:var(--navy)"><h4>א · ב</h4><div class="ln he"><b>א</b> גז אידיאלי כגבול — וההגדרה של הטמפרטורה</div><div class="ln he"><b>ב</b> תערובות, דלטון, ולמה ״לחץ חלקי״ מטעה</div></div>
+    <div class="card step" data-ord="1" style="--accent:var(--terra)"><h4>ג · ד</h4><div class="ln he"><b>ג</b> גורם הדחיסות <span class="m">Z</span> — משיכה מול דחייה</div><div class="ln he"><b>ד</b> הפיתוח הויריאלי, <span class="m">B<sub>2</sub></span>, וטמפרטורת בויל</div></div>
+    <div class="card step" data-ord="2" style="--accent:var(--green)"><h4>בבית</h4><div class="ln he"><b>למידה עצמית 1</b>: ואן דר ואלס, <span class="m">B<sub>2</sub> = b − a/RT</span>, פיתוח בלחץ</div><div class="fin he">יעד 2.12 · נבחן כמו המפגש</div></div>
+  </div>
+  <div class="box chem step" data-ord="3"><b class="tag">כבר ראיתם בכימיה כללית 1</b><span class="m">pV = nRT</span>, לחצים חלקיים בחוק דלטון, גורם הדחיסות, ואן דר ואלס עם שני התיקונים, ו-<span class="m">p(V)</span> של ואן דר ואלס בבוחן האמצע. <b>חדש:</b> הגבול האידיאלי, הגדרה מול חוק בלחץ חלקי, קריאת <span class="m">Z</span> אמיתי, והפיתוח הויריאלי.</div>
+</section>
+
+<section class="slide divider" style="--accent:var(--navy)" data-part="חלק א" data-title="שער חלק א">
+  <div class="big-num">א</div>
+  <h1>גז אידיאלי כגבול</h1>
+  <div class="sub">והגדרת הטמפרטורה · כ-17 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="הגבול האידיאלי">
+  <div class="eyebrow">חלק א · הגבול שכל גז שואף אליו</div>
+  <h2>לא ״<span class="m">pV = nRT</span>״ — אלא גבול</h2>
+  <div class="box idea"><b class="tag">לכל גז, בכל טמפרטורה</b><span class="mline big">T = lim<sub>ρ→0</sub> p/(ρR)</span>הגבול זהה לכל החומרים. בגבול <span class="m">p = ρRT</span> מדויקת; בכל צפיפות סופית — <b>קירוב</b>.</div>
+  <div class="box key step" data-ord="1"><b class="tag">זו ההגדרה של הטמפרטורה</b>מדחום גז: כמות קבועה, מודדים <span class="m">pV/nR</span>. ארגון נותן מספר אחד, הליום — קצת אחר. מי צודק? אף אחד. מדללים, ומדללים — ובגבול כולם מסכימים. המספר שכולם מסכימים עליו <b>הוא</b> הטמפרטורה. לא צריך לדעת כלום על הגז.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="דוגמה 1 — מדחום גז">
+  <div class="eyebrow">חלק א · דוגמה 1</div>
+  <h2>ארגון ב-<span class="m">300 K</span> בדיוק. מה מראה ״מדחום גז אידיאלי״?</h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th>p [bar]</th><th>10</th><th>20</th><th>50</th></tr>
+    <tr><td>T<sub>id</sub> = pv/R  [K]</td><td>298.2</td><td>296.5</td><td>292.0</td></tr>
+  </table></div>
+  <div class="chainstrip zoom step" data-ord="1">
+    <div class="crow"><span class="clab chk">הטעות</span><span class="cmath">298.2 − 296.5 = 1.7 K</span><span class="cd he">גדלה עם הלחץ; בין 10 ל-20 בר — 1.7 מעלות</span></div>
+    <div class="crow step" data-ord="2"><span class="clab side">אקסטרפולציה</span><span class="cmath">T ≈ 298.2 + 1.7 = 299.9 K</span><span class="cd he">מ-10 בר ל-0 מוסיפים בערך אותו הדבר</span></div>
+  </div>
+  <div class="box chem step" data-ord="3"><b class="tag">שלושה גזים, גבול אחד</b>באותו לחץ, <span class="m">50 bar</span>: ארגון <span class="m">292.0 K</span>, חנקן <span class="m">299.0 K</span>, הליום <span class="m">307.1 K</span>. בגבול <span class="m">p → 0</span> — כולם <span class="m">300 K</span>.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="מה דליל אומר">
+  <div class="eyebrow">חלק א · מה ״דליל״ אומר במולקולות</div>
+  <h2>המרחק בין שכנים: <span class="m">d = (k<sub>B</sub>T/p)<sup>1/3</sup></span></h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th class="he">ב-300 K</th><th>1 bar</th><th>100 bar</th><th class="he">חנקן נוזלי</th></tr>
+    <tr><td>d [nm]</td><td>3.5</td><td>0.75</td><td>0.39</td></tr>
+  </table></div>
+  <div class="box idea step" data-ord="1"><b class="tag">קוטר מולקולת חנקן — בערך <span class="m">0.37 nm</span></b>ב-<span class="m">1 bar</span> השכנים רחוקים פי 10 מהקוטר — כמעט לא מרגישים זה את זה. ב-<span class="m">100 bar</span> — שני קטרים, בתוך טווח המשיכה. בנוזל — נוגעים.</div>
+  <div class="box key step" data-ord="2"><b class="tag">״חלקיקים נקודתיים בלי אינטראקציות״</b>זה לא שהמולקולות נקודתיות. הן <b>רחוקות</b> מספיק כדי שהגודל והכוחות לא ישנו כלום. גז אידיאלי הוא תכונה של <b>הצפיפות</b>, לא של המולקולה.</div>
+</section>
+
+<section class="slide" data-part="חלק א" data-title="תרגול בכיתה 1">
+  <div class="eyebrow">חלק א · תרגול בכיתה 1 · 5 דקות</div>
+  <h2>כמה דליל זה דליל</h2>
+  <ul class="big"><li>(א) המרחק הממוצע בין מולקולות ב-<span class="m">300 K</span> וב-<span class="m">1 bar</span>.</li><li>(ב) באיזה לחץ המרחק שווה ל-<span class="m">1.0 nm</span>?</li><li>(ג) <span class="m">d</span> לחנקן נוזלי (<span class="m">0.807 g mL⁻¹</span>, <span class="m">M<sub>w</sub> = 28.0</span>) מול קוטר <span class="m">0.37 nm</span>.</li></ul>
+  <div class="chainstrip zoom tight step" data-ord="1">
+    <div class="crow"><span class="clab chk">(א)</span><span class="cmath">k<sub>B</sub>T/p = 4.14×10⁻²⁶ m³ ⇒ d = 3.46 nm</span><span class="cd he">הנפח למולקולה, בחזקת שליש</span></div>
+    <div class="crow"><span class="clab chk">(ב)</span><span class="cmath">p = k<sub>B</sub>T/d³ = 4.14×10⁶ Pa = 41 bar</span><span class="cd he">פי 3.46 במרחק = פי 41 בלחץ</span></div>
+    <div class="crow"><span class="clab chk">(ג)</span><span class="cmath">v = 34.7 mL mol⁻¹ ⇒ d = 0.39 nm</span><span class="cd he">קוטר אחד — בנוזל המולקולות נוגעות</span></div>
+  </div>
+  <div class="box think step" data-ord="2"><b class="tag">עצרו וחשבו</b>יש ״גבול אידיאלי״ גם לנוזל? — לא. אי אפשר לדלל נוזל בלי שיפסיק להיות נוזל. לכן רק לגז יש משוואת מצב אוניברסלית. הפתרון המלא — תרגיל 1 בחוברת.</div>
+</section>
+
+<section class="slide divider" style="--accent:var(--terra)" data-part="חלק ב" data-title="שער חלק ב">
+  <div class="big-num">ב</div>
+  <h1>תערובות, דלטון ו״לחץ חלקי״</h1>
+  <div class="sub">כ-18 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="חוק דלטון">
+  <div class="eyebrow">חלק ב · תערובת אידיאלית</div>
+  <h2>לחץ התערובת = סכום הלחצים של כל רכיב <b>לבדו</b></h2>
+  <div class="box idea"><b class="tag">חוק דלטון</b><span class="mline big">p = n<sub>1</sub>RT/V + n<sub>2</sub>RT/V + … = RT Σρ<sub>i</sub></span><b>זה איננו חוק כללי.</b> נכון רק בגבול של תערובת אידיאלית.</div>
+  <div class="box chem step" data-ord="1"><b class="tag">כבר ראיתם בכימיה כללית 1</b>בגובה 5000 מטר: <span class="m">p = 54019 Pa</span>, 21% חמצן ⇒ <span class="m">0.21 × 54019 = 11.3 kPa</span> — כמעט חצי מפני הים. החישוב נשאר נכון. היום נבין <b>מה</b> חישבנו.</div>
+  <div class="box quote step" data-ord="2"><b class="tag">💬 קטנוני לרגע</b>לחץ הוא כוח על דופן. הדופן לא יודעת איזו מולקולה פגעה בה. אין מכשיר שמראה ״לחץ של חמצן״. וביחידה 1: הלחץ צמוד לנפח של <b>המערכת</b>. למערכת יש לחץ אחד.</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="הגדרה מול חוק">
+  <div class="eyebrow">חלק ב · שתי אמירות שנשמעות אותו דבר</div>
+  <h2>״לחץ חלקי״: מה הגדרה ומה חוק</h2>
+  <div class="cards3">
+    <div class="card" style="--accent:var(--navy)"><h4>הגדרה — תמיד נכונה</h4><div class="ln"><span class="m">p<sub>i</sub> ≡ x<sub>i</sub> p</span></div><div class="ln he">ולכן <span class="m">Σp<sub>i</sub> = p</span>, כי סכום שברי המול הוא 1</div></div>
+    <div class="card step" data-ord="1" style="--accent:var(--terra)"><h4>חוק דלטון — רק באידיאלי</h4><div class="ln"><span class="m">p<sub>i</sub> = n<sub>i</sub>RT/V</span></div><div class="ln he">הלחץ החלקי = הלחץ שהרכיב היה מפעיל לבדו</div></div>
+    <div class="card step" data-ord="2" style="--accent:var(--green)"><h4>למה נכשל בצפיפות</h4><div class="ln he">מגעים חנקן–חנקן, ארגון–ארגון <b>וחנקן–ארגון</b></div><div class="fin he">את הסוג השלישי אף גז טהור לא ״מכיר״</div></div>
+  </div>
+  <div class="box key step" data-ord="3"><b class="tag">בתרגיל הבית (חלק ד)</b>בגז ויריאלי תראו בדיוק כמה דלטון נכשל — וכל הטעות שלו תבוא מהמקדם של המפגשים ה״מעורבים״.</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="דוגמה 2 — הממברנה">
+  <div class="eyebrow">חלק ב · דוגמה 2</div>
+  <h2>אם אין מכשיר שמודד לחץ חלקי — מה כן נמדד?</h2>
+  <div class="cols"><div class="txt">
+    <p class="lead">פלדיום: רק מימן עובר דרכו. תערובת מימן וחנקן (<span class="m">10 bar</span>, <span class="m">x<sub>H₂</sub> = 0.30</span>) מחוברת דרך פלדיום לתא של מימן טהור.</p>
+    <div class="box idea step" data-ord="1"><b class="tag">מה משתווה</b>מגע דיפוזיבי למימן בלבד (יחידה 1) ⇒ משתווה <b>הפוטנציאל הכימי של המימן</b>, לא הלחץ.</div>
+    <div class="box key step" data-ord="2"><b class="tag">באידיאלי</b>המימן ״לא מרגיש״ את החנקן ⇒ מתנהג כאילו לבד ב-<span class="m">x<sub>H₂</sub>p</span>: <span class="m">p<sub>H₂</sub> = 0.30 × 10 = 3.0 bar</span>. זו המשמעות המדידה של ״לחץ חלקי״. בתערובת לא אידיאלית — יחידה 11, ״פוגסיות״.</div>
+  </div><div class="fig">
+    <svg viewBox="0 0 400 260" aria-label="תא תערובת ותא מימן מופרדים בדופן פלדיום">
+      <rect x="20" y="40" width="170" height="170" rx="8" fill="#EEF2FA" stroke="#1F4E79" stroke-width="2"/>
+      <rect x="210" y="40" width="170" height="170" rx="8" fill="#EAF4F2" stroke="#2A9D8F" stroke-width="2"/>
+      <rect x="190" y="40" width="20" height="170" fill="#D9A441" opacity=".8"/>
+      <g style="fill:#1F4E79"><circle cx="50" cy="80" r="7"/><circle cx="100" cy="70" r="7"/><circle cx="150" cy="95" r="7"/><circle cx="70" cy="140" r="7"/><circle cx="130" cy="150" r="7"/><circle cx="60" cy="185" r="7"/><circle cx="160" cy="180" r="7"/></g>
+      <g style="fill:#C0553A"><circle cx="90" cy="110" r="4"/><circle cx="160" cy="130" r="4"/><circle cx="40" cy="120" r="4"/></g>
+      <g style="fill:#C0553A"><circle cx="250" cy="90" r="4"/><circle cx="330" cy="150" r="4"/></g>
+      <text x="105" y="30" class="lbl" text-anchor="middle" style="fill:#1F4E79">תערובת</text><text x="295" y="30" class="lbl" text-anchor="middle" style="fill:#1E7A6E">מימן טהור</text>
+      <text x="200" y="232" class="lbl" text-anchor="middle" style="fill:#A8781C">פלדיום</text>
+      <text x="105" y="252" class="num" text-anchor="middle" style="fill:#1F4E79">10 bar</text>
+      <g class="step" data-ord="2"><text x="295" y="252" class="num" text-anchor="middle" style="fill:#1E7A6E">3.0 bar</text></g>
+    </svg>
+  </div></div>
+  <div class="box think step" data-ord="3"><b class="tag">עצרו וחשבו</b>10 בר מול 3 בר — למה המימן לא זורם מהלחץ הגבוה לנמוך? — כי במגע דיפוזיבי חומר זורם מה-<span class="m">μ</span> הגבוה לנמוך, לא מה-<span class="m">p</span> הגבוה לנמוך.</div>
+</section>
+
+<section class="slide" data-part="חלק ב" data-title="תרגול בכיתה 2">
+  <div class="eyebrow">חלק ב · תרגול בכיתה 2 · 6 דקות</div>
+  <h2>לחץ חלקי — הגדרה, חוק ומדידה</h2>
+  <ul class="big"><li>(א) אוויר ב-<span class="m">1.013 bar</span>: <span class="m">x = 0.781, 0.209, 0.0093</span>. הלחצים החלקיים — מה הגדרה ומה חוק?</li><li>(ב) מכל צלילה: <span class="m">80.0 mol</span> חנקן ב-<span class="m">10.0 L</span>, <span class="m">300 K</span>. אידיאלי? נמדד <span class="m">213.6 bar</span>. מה <span class="m">Z</span>?</li><li>(ג) מוסיפים חנקן לתא התערובת. הלחץ בתא המימן ישתנה?</li></ul>
+  <div class="chainstrip zoom tight step" data-ord="1">
+    <div class="crow"><span class="clab chk">(א)</span><span class="cmath">0.791, 0.212, 0.0094 bar</span><span class="cd he">הכפל <span class="m">x<sub>i</sub>p</span> — הגדרה; ״הלחץ לבד״ — דלטון</span></div>
+    <div class="crow"><span class="clab chk">(ב)</span><span class="cmath">p<sub>id</sub> = 199.5 bar, Z = 1.071</span><span class="cd he">ב-200 בר גם חנקן טהור סוטה ב-7% מאידיאלי</span></div>
+    <div class="crow"><span class="clab chk">(ג)</span><span class="cmath">x<sub>H₂</sub>p = n<sub>H₂</sub>RT/V</span><span class="cd he">לא ישתנה — באידיאלי המימן לא מרגיש את החנקן</span></div>
+  </div>
+</section>
+
+<section class="slide divider" style="--accent:var(--green)" data-part="חלק ג" data-title="שער חלק ג">
+  <div class="big-num">ג</div>
+  <h1>גורם הדחיסות</h1>
+  <div class="sub">מדד אחד לסטייה · כ-25 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="הגדרת Z">
+  <div class="eyebrow">חלק ג · ההגדרה</div>
+  <h2>מספר אחד שאומר כמה הגז לא אידיאלי</h2>
+  <div class="box idea"><b class="tag">גורם הדחיסות</b><span class="mline big">Z ≡ pV/nRT = pv/RT = p/ρRT</span><span class="m">Z = 1</span> לגז אידיאלי.</div>
+  <div class="box key step" data-ord="1"><b class="tag">משמעות פשוטה</b><span class="m">Z = v/v<sub>id</sub></span>, כאשר <span class="m">v<sub>id</sub> = RT/p</span> — הנפח האמיתי חלקי הנפח שהיה לגז אידיאלי <b>באותם</b> <span class="m">T</span> ו-<span class="m">p</span>.</div>
+  <div class="cards3 step" data-ord="2">
+    <div class="card" style="--accent:var(--navy)"><h4><span class="m">Z &lt; 1</span></h4><div class="ln he">צפוף מאידיאלי</div></div>
+    <div class="card" style="--accent:var(--muted)"><h4><span class="m">Z = 1</span></h4><div class="ln he">כמו אידיאלי</div></div>
+    <div class="card" style="--accent:var(--terra)"><h4><span class="m">Z &gt; 1</span></h4><div class="ln he">דליל מאידיאלי</div></div>
+  </div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="Z של חנקן">
+  <div class="eyebrow">חלק ג · נתוני חנקן אמיתיים (78% מהאוויר)</div>
+  <h2>תסתכלו דקה לפני שאני אומר מילה</h2>
+  <div class="cols"><div class="fig">
+<svg viewBox="0 0 560 350" aria-label="גורם הדחיסות של חנקן כפונקציה של הלחץ">
+<line x1="60" y1="290" x2="540" y2="290" stroke="#6B7280" stroke-width="1.5"/><line x1="60" y1="290" x2="60" y2="20" stroke="#6B7280" stroke-width="1.5"/>
+<line x1="60.0" y1="290" x2="60.0" y2="295" stroke="#6B7280"/><text x="60.0" y="310" class="num" text-anchor="middle" style="font-size:13px">0</text>
+<line x1="140.0" y1="290" x2="140.0" y2="295" stroke="#6B7280"/><text x="140.0" y="310" class="num" text-anchor="middle" style="font-size:13px">100</text>
+<line x1="220.0" y1="290" x2="220.0" y2="295" stroke="#6B7280"/><text x="220.0" y="310" class="num" text-anchor="middle" style="font-size:13px">200</text>
+<line x1="300.0" y1="290" x2="300.0" y2="295" stroke="#6B7280"/><text x="300.0" y="310" class="num" text-anchor="middle" style="font-size:13px">300</text>
+<line x1="380.0" y1="290" x2="380.0" y2="295" stroke="#6B7280"/><text x="380.0" y="310" class="num" text-anchor="middle" style="font-size:13px">400</text>
+<line x1="460.0" y1="290" x2="460.0" y2="295" stroke="#6B7280"/><text x="460.0" y="310" class="num" text-anchor="middle" style="font-size:13px">500</text>
+<line x1="540.0" y1="290" x2="540.0" y2="295" stroke="#6B7280"/><text x="540.0" y="310" class="num" text-anchor="middle" style="font-size:13px">600</text>
+<line x1="55" y1="290.0" x2="60" y2="290.0" stroke="#6B7280"/><text x="51" y="294.0" class="num" text-anchor="end" style="font-size:13px">0.4</text>
+<line x1="55" y1="254.0" x2="60" y2="254.0" stroke="#6B7280"/><text x="51" y="258.0" class="num" text-anchor="end" style="font-size:13px">0.6</text>
+<line x1="55" y1="218.0" x2="60" y2="218.0" stroke="#6B7280"/><text x="51" y="222.0" class="num" text-anchor="end" style="font-size:13px">0.8</text>
+<line x1="55" y1="182.0" x2="60" y2="182.0" stroke="#6B7280"/><text x="51" y="186.0" class="num" text-anchor="end" style="font-size:13px">1.0</text>
+<line x1="55" y1="146.0" x2="60" y2="146.0" stroke="#6B7280"/><text x="51" y="150.0" class="num" text-anchor="end" style="font-size:13px">1.2</text>
+<line x1="55" y1="110.0" x2="60" y2="110.0" stroke="#6B7280"/><text x="51" y="114.0" class="num" text-anchor="end" style="font-size:13px">1.4</text>
+<line x1="55" y1="74.0" x2="60" y2="74.0" stroke="#6B7280"/><text x="51" y="78.0" class="num" text-anchor="end" style="font-size:13px">1.6</text>
+<line x1="55" y1="38.0" x2="60" y2="38.0" stroke="#6B7280"/><text x="51" y="42.0" class="num" text-anchor="end" style="font-size:13px">1.8</text>
+<line x1="60" y1="182.0" x2="540" y2="182.0" stroke="#6B7280" stroke-dasharray="5 4"/>
+<text x="300.0" y="332" class="num" text-anchor="middle" style="font-size:13px;font-style:italic">p [bar]</text><text x="66" y="24" class="num" style="font-size:14px;font-style:italic">Z</text>
+<g><polyline points="60.0,182.0 80.0,210.0 100.0,242.3 120.0,266.5 140.0,265.5 160.0,255.6 180.0,243.6 200.0,230.9 220.0,218.1 240.0,205.2 260.0,192.4 280.0,179.8 300.0,167.2 320.0,154.7 340.0,142.4 360.0,130.2 380.0,118.0 400.0,106.0 420.0,94.1 440.0,82.2 460.0,70.5 480.0,58.8 500.0,47.3 520.0,35.8 540.0,24.4" fill="none" stroke="#1F4E79" stroke-width="3"/><text x="436.0" y="59.6" class="num" style="fill:#1F4E79;font-size:13px">150 K</text></g>
+<g class="step" data-ord="2"><polyline points="60.0,182.0 80.0,191.3 100.0,199.6 120.0,206.1 140.0,210.0 160.0,210.9 180.0,208.9 200.0,204.8 220.0,199.1 240.0,192.3 260.0,184.8 280.0,176.8 300.0,168.5 320.0,160.0 340.0,151.4 360.0,142.7 380.0,133.9 400.0,125.2 420.0,116.4 440.0,107.6 460.0,98.9 480.0,90.2 500.0,81.5 520.0,72.8 540.0,64.2" fill="none" stroke="#7B9ACC" stroke-width="3"/><text x="472.0" y="92.0" class="num" style="fill:#7B9ACC;font-size:13px">200 K</text></g>
+<g class="step" data-ord="3"><polyline points="60.0,182.0 80.0,182.6 100.0,182.6 120.0,182.1 140.0,181.1 160.0,179.5 180.0,177.4 200.0,174.8 220.0,171.8 240.0,168.4 260.0,164.6 280.0,160.6 300.0,156.3 320.0,151.8 340.0,147.1 360.0,142.2 380.0,137.3 400.0,132.2 420.0,127.0 440.0,121.8 460.0,116.5 480.0,111.2 500.0,105.8 520.0,100.4 540.0,95.0" fill="none" stroke="#2A9D8F" stroke-width="3"/><text x="492.0" y="115.4" class="num" style="fill:#2A9D8F;font-size:13px">300 K</text></g>
+<g class="step" data-ord="4"><polyline points="60.0,182.0 80.0,180.1 100.0,178.2 120.0,176.1 140.0,173.9 160.0,171.7 180.0,169.3 200.0,166.9 220.0,164.4 240.0,161.8 260.0,159.2 280.0,156.5 300.0,153.7 320.0,150.9 340.0,148.1 360.0,145.2 380.0,142.3 400.0,139.3 420.0,136.3 440.0,133.3 460.0,130.3 480.0,127.2 500.0,124.2 520.0,121.1 540.0,118.0" fill="none" stroke="#D9A441" stroke-width="3"/><text x="492.0" y="133.4" class="num" style="fill:#D9A441;font-size:13px">500 K</text></g>
+<g class="step" data-ord="5"><polyline points="60.0,182.0 80.0,180.4 100.0,178.9 120.0,177.3 140.0,175.7 160.0,174.1 180.0,172.5 200.0,170.9 220.0,169.3 240.0,167.7 260.0,166.1 280.0,164.5 300.0,162.9 320.0,161.3 340.0,159.7 360.0,158.1 380.0,156.5 400.0,154.8 420.0,153.2 440.0,151.6 460.0,150.0 480.0,148.3 500.0,146.7 520.0,145.1 540.0,143.5" fill="none" stroke="#C0553A" stroke-width="3"/><text x="488.0" y="156.8" class="num" style="fill:#C0553A;font-size:13px">1000 K</text></g>
+</svg>
+  </div><div class="txt">
+    <div class="box idea step" data-ord="5"><b class="tag">ארבעה דברים</b>(1) בלחץ אפס <span class="m">Z = 1</span> תמיד. (2) בלחץ גבוה <span class="m">Z &gt; 1</span> תמיד. (3) בקור — בור; ב-<span class="m">150 K</span> עד <span class="m">0.53</span>. (4) בחום — אין בור.</div>
+    <div class="box think step" data-ord="6"><b class="tag">ותסתכלו על 300 K</b>כמעט שטוח עד 100 בר. משהו מיוחד קורה שם — נחזור אליו בחלק ד.</div>
+  </div></div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="שני כוחות מתחרים">
+  <div class="eyebrow">חלק ג · המקור המולקולרי</div>
+  <h2>משיכה מול דחייה — והטמפרטורה מכריעה</h2>
+  <div class="cards3">
+    <div class="card" style="--accent:var(--navy)"><h4>משיכה</h4><div class="ln he">בטווח של כמה קטרים. מושכת שכנות פנימה, הלחץ על הדופן קטן</div><div class="fin he"><span class="m">Z &lt; 1</span></div></div>
+    <div class="card step" data-ord="1" style="--accent:var(--terra)"><h4>דחייה</h4><div class="ln he">במגע. המולקולות לא חודרות זו לזו — חלק מהנפח ״תפוס״</div><div class="fin he"><span class="m">Z &gt; 1</span></div></div>
+    <div class="card step" data-ord="2" style="--accent:var(--green)"><h4>מי מנצח</h4><div class="ln he">בחום — האנרגיה הקינטית גדולה מבור המשיכה, נשארת דחייה</div><div class="fin he">בלחץ גבוה מאוד — דחייה תמיד</div></div>
+  </div>
+  <div class="box quote step" data-ord="3"><b class="tag">💬 מסיבה</b>חברים טובים נצמדים בקבוצות — בחדר נכנסים יותר אנשים: משיכה. אבל שניים לא עומדים באותו מקום — כשהחדר מלא: דחייה. ומגבירים את המוזיקה: כולם רוקדים מהר, אף אחד לא נעצר לדבר — זו טמפרטורה גבוהה.</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="דוגמה 3 — CO₂">
+  <div class="eyebrow">חלק ג · דוגמה 3</div>
+  <h2>פחמן דו-חמצני ב-<span class="m">350 K</span> וב-<span class="m">150 bar</span>: <span class="m">v = 0.09797 L mol⁻¹</span></h2>
+  <div class="chainstrip zoom">
+    <div class="crow"><span class="clab chk">Z</span><span class="cmath">Z = pv/RT = (150 × 0.09797)/(0.083145 × 350)</span><span class="cd he">מציבים</span></div>
+    <div class="crow step" data-ord="1"><span class="clab side">=</span><span class="cmath">14.70 / 29.10 = 0.505</span><span class="cd he">חצי מהנפח האידיאלי</span></div>
+  </div>
+  <div class="box idea step" data-ord="2"><b class="tag">למה CO₂ ולא חנקן</b>משיכה חזקה בהרבה (מולקולה גדולה, מומנט קוודרופול). ב-<span class="m">350 K</span> הוא עדיין ״קר״ ביחס לבור שלו; חנקן באותה טמפרטורה כבר ״חם״.</div>
+  <div class="box chem step" data-ord="3"><b class="tag">מהמעבדה</b>הוצאת קפאין מקפה ב-CO₂ על-קריטי, בערך <span class="m">300 bar</span> ו-<span class="m">350 K</span>: <span class="m">Z = 0.60</span> — צפיפות קרובה לנוזל, ממיס קפאין, ונעלם בלי שאריות כשמורידים לחץ. מי שמתכנן עם <span class="m">pV = nRT</span> מחמיץ שליש מהחומר.</div>
+</section>
+
+<section class="slide" data-part="חלק ג" data-title="תרגול בכיתה 3">
+  <div class="eyebrow">חלק ג · תרגול בכיתה 3 · 7 דקות</div>
+  <h2>לקרוא <span class="m">Z</span> מנתונים — חנקן ב-<span class="m">200 K</span></h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th>p [bar]</th><th>50</th><th>100</th><th>150</th><th>250</th><th>400</th></tr>
+    <tr><td>v [L mol⁻¹]</td><td>0.3000</td><td>0.1405</td><td>0.09427</td><td>0.06550</td><td>0.05268</td></tr>
+    <tr class="step" data-ord="1"><td>Z</td><td>0.902</td><td>0.845</td><td>0.850</td><td>0.985</td><td>1.267</td></tr>
+  </table></div>
+  <div class="box key step" data-ord="2"><b class="tag">(ב)</b>משיכה שולטת עד כ-<span class="m">260 bar</span> (מינימום בין 100 ל-150), מעל — דחייה. <b>(ג)</b> הליום ב-<span class="m">300 K</span>: <span class="m">Z &gt; 1</span> מההתחלה — המשיכה חלשה מאוד ביחס ל-<span class="m">k<sub>B</sub>T</span>; בכמה עשרות קלווין יש בור גם לו.</div>
+  <a class="simbanner step" data-ord="3" href="sim_realgas.html#a" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשוניות א ו-ב</b><span>Z של גזים אמיתיים, וחלקיקים אמיתיים עם משיכה ודחייה — הלחץ נמדד מהחלקיקים</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide divider" style="--accent:var(--gold)" data-part="חלק ד" data-title="שער חלק ד">
+  <div class="big-num">ד</div>
+  <h1>הפיתוח הויריאלי</h1>
+  <div class="sub">מבט ראשון · כ-30 דקות</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="הפיתוח הויריאלי">
+  <div class="eyebrow">חלק ד · כשאין משוואה — טור</div>
+  <h2>מפתחים סביב המקום שבו מבינים את הגז: צפיפות אפס</h2>
+  <div class="box idea"><b class="tag">הפיתוח הויריאלי</b><span class="mline big">Z(T, ρ) = 1 + B<sub>2</sub>(T) ρ + B<sub>3</sub>(T) ρ² + ⋯</span><span class="m">B<sub>2</sub>, B<sub>3</sub></span> — תלויים <b>בטמפרטורה ובסוג הגז בלבד</b>, לא בצפיפות. נמדדים בניסוי. <span class="m">[B<sub>2</sub>] = cm³ mol⁻¹</span>, <span class="m">[B<sub>3</sub>] = cm⁶ mol⁻²</span>.</div>
+  <div class="box key step" data-ord="1"><b class="tag">למה חזקות של ρ</b>כמה מולקולות ״קרוב״ למולקולה נתונה? פרופורציוני ל-<span class="m">ρ</span> ⇒ תיקון של <b>זוגות</b>: <span class="m">B<sub>2</sub>ρ</span>. שלוש קרובות — נדיר יותר, <span class="m">ρ²</span>: <span class="m">B<sub>3</sub>ρ²</span>. לכן <span class="m">B<sub>2</sub></span> מספר על האינטראקציה בין <b>שתי</b> מולקולות.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="למצוא את B₂">
+  <div class="eyebrow">חלק ד · איך מוצאים את B₂ מנתונים</div>
+  <h2>מעבירים את ה-1 ומחלקים ב-<span class="m">ρ</span></h2>
+  <div class="cols"><div class="txt">
+    <div class="box idea"><b class="tag">ישר</b><span class="mline big">(Z − 1)/ρ = B<sub>2</sub> + B<sub>3</sub> ρ + ⋯</span>החיתוך עם הציר (ב-<span class="m">ρ → 0</span>) הוא <span class="m">B<sub>2</sub></span>, והשיפוע הוא <span class="m">B<sub>3</sub></span>.</div>
+    <div class="box key step" data-ord="1"><b class="tag">ביחידה 0</b><span class="m">B<sub>2</sub> = lim<sub>ρ→0</sub>(Z − 1)/ρ</span> — <b>השיפוע ההתחלתי</b> של <span class="m">Z</span> כפונקציה של <span class="m">ρ</span>.</div>
+  </div><div class="fig">
+<svg viewBox="0 0 480 300" aria-label="(Z-1)/rho כנגד rho לארגון">
+<line x1="70" y1="240" x2="460" y2="240" stroke="#6B7280" stroke-width="1.5"/><line x1="70" y1="240" x2="70" y2="20" stroke="#6B7280" stroke-width="1.5"/>
+<text x="70.0" y="260" class="num" text-anchor="middle" style="font-size:13px">0</text>
+<text x="145.0" y="260" class="num" text-anchor="middle" style="font-size:13px">0.5</text>
+<text x="220.0" y="260" class="num" text-anchor="middle" style="font-size:13px">1.0</text>
+<text x="295.0" y="260" class="num" text-anchor="middle" style="font-size:13px">1.5</text>
+<text x="370.0" y="260" class="num" text-anchor="middle" style="font-size:13px">2.0</text>
+<text x="445.0" y="260" class="num" text-anchor="middle" style="font-size:13px">2.5</text>
+<text x="61" y="244.0" class="num" text-anchor="end" style="font-size:13px">-16</text><line x1="65" y1="240.0" x2="70" y2="240.0" stroke="#6B7280"/>
+<text x="61" y="200.0" class="num" text-anchor="end" style="font-size:13px">-15</text><line x1="65" y1="196.0" x2="70" y2="196.0" stroke="#6B7280"/>
+<text x="61" y="156.0" class="num" text-anchor="end" style="font-size:13px">-14</text><line x1="65" y1="152.0" x2="70" y2="152.0" stroke="#6B7280"/>
+<text x="61" y="112.0" class="num" text-anchor="end" style="font-size:13px">-13</text><line x1="65" y1="108.0" x2="70" y2="108.0" stroke="#6B7280"/>
+<text x="61" y="68.0" class="num" text-anchor="end" style="font-size:13px">-12</text><line x1="65" y1="64.0" x2="70" y2="64.0" stroke="#6B7280"/>
+<text x="61" y="24.0" class="num" text-anchor="end" style="font-size:13px">-11</text><line x1="65" y1="20.0" x2="70" y2="20.0" stroke="#6B7280"/>
+<text x="265.0" y="282" class="num" text-anchor="middle" style="font-size:13px;font-style:italic">ρ [mol L⁻¹]</text><text x="76" y="22" class="num" style="font-size:13px;font-style:italic">(Z−1)/ρ [cm³ mol⁻¹]</text>
+<circle cx="130.5" cy="185.0" r="5" style="fill:#1F4E79"/><circle cx="191.7" cy="166.0" r="5" style="fill:#1F4E79"/><circle cx="253.5" cy="146.6" r="5" style="fill:#1F4E79"/><circle cx="316.0" cy="126.8" r="5" style="fill:#1F4E79"/><circle cx="378.9" cy="106.7" r="5" style="fill:#1F4E79"/><circle cx="442.4" cy="86.4" r="5" style="fill:#1F4E79"/>
+<g class="step" data-ord="1"><line x1="70.0" y1="204.4" x2="460.0" y2="81.0" stroke="#C0553A" stroke-width="2.5" stroke-dasharray="7 4"/><circle cx="70.0" cy="204.4" r="6" style="fill:#C0553A"/><text x="82.0" y="226.4" class="num" style="fill:#C0553A">B₂ = −15.2</text></g>
+</svg>
+  </div></div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="B₂ של ארגון">
+  <div class="eyebrow">חלק ד · B₂(T) של ארגון</div>
+  <h2>שלילי בקור, חיובי בחום — ואפס ב-<span class="m">408 K</span></h2>
+  <div class="cols"><div class="fig">
+<svg viewBox="0 0 520 320" aria-label="המקדם הויריאלי השני של ארגון כפונקציה של הטמפרטורה">
+<line x1="70" y1="260" x2="500" y2="260" stroke="#6B7280" stroke-width="1.5"/><line x1="70" y1="260" x2="70" y2="20" stroke="#6B7280" stroke-width="1.5"/>
+<text x="70.0" y="280" class="num" text-anchor="middle" style="font-size:13px">0</text><line x1="70.0" y1="260" x2="70.0" y2="265" stroke="#6B7280"/>
+<text x="151.9" y="280" class="num" text-anchor="middle" style="font-size:13px">200</text><line x1="151.9" y1="260" x2="151.9" y2="265" stroke="#6B7280"/>
+<text x="233.8" y="280" class="num" text-anchor="middle" style="font-size:13px">400</text><line x1="233.8" y1="260" x2="233.8" y2="265" stroke="#6B7280"/>
+<text x="315.7" y="280" class="num" text-anchor="middle" style="font-size:13px">600</text><line x1="315.7" y1="260" x2="315.7" y2="265" stroke="#6B7280"/>
+<text x="397.6" y="280" class="num" text-anchor="middle" style="font-size:13px">800</text><line x1="397.6" y1="260" x2="397.6" y2="265" stroke="#6B7280"/>
+<text x="479.5" y="280" class="num" text-anchor="middle" style="font-size:13px">1000</text><line x1="479.5" y1="260" x2="479.5" y2="265" stroke="#6B7280"/>
+<text x="61" y="264.0" class="num" text-anchor="end" style="font-size:13px">-200</text><line x1="65" y1="260.0" x2="70" y2="260.0" stroke="#6B7280"/>
+<text x="61" y="214.0" class="num" text-anchor="end" style="font-size:13px">-150</text><line x1="65" y1="210.0" x2="70" y2="210.0" stroke="#6B7280"/>
+<text x="61" y="164.0" class="num" text-anchor="end" style="font-size:13px">-100</text><line x1="65" y1="160.0" x2="70" y2="160.0" stroke="#6B7280"/>
+<text x="61" y="114.0" class="num" text-anchor="end" style="font-size:13px">-50</text><line x1="65" y1="110.0" x2="70" y2="110.0" stroke="#6B7280"/>
+<text x="61" y="64.0" class="num" text-anchor="end" style="font-size:13px">0</text><line x1="65" y1="60.0" x2="70" y2="60.0" stroke="#6B7280"/>
+<text x="61" y="24.0" class="num" text-anchor="end" style="font-size:13px">40</text><line x1="65" y1="20.0" x2="70" y2="20.0" stroke="#6B7280"/>
+<line x1="70" y1="60.0" x2="500" y2="60.0" stroke="#6B7280" stroke-dasharray="5 4"/>
+<text x="285.0" y="302" class="num" text-anchor="middle" style="font-size:13px;font-style:italic">T [K]</text><text x="76" y="22" class="num" style="font-size:13px;font-style:italic">B₂ [cm³ mol⁻¹]</text>
+<polyline points="111.0,243.2 131.4,146.3 151.9,108.0 172.4,87.6 192.9,75.2 213.3,66.8 233.8,60.8 254.3,56.4 274.8,53.0 315.7,48.1 356.7,44.9 397.6,42.6 479.5,39.6" fill="none" stroke="#1F4E79" stroke-width="3"/>
+<circle cx="111.0" cy="243.2" r="3.5" style="fill:#1F4E79"/><circle cx="131.4" cy="146.3" r="3.5" style="fill:#1F4E79"/><circle cx="151.9" cy="108.0" r="3.5" style="fill:#1F4E79"/><circle cx="172.4" cy="87.6" r="3.5" style="fill:#1F4E79"/><circle cx="192.9" cy="75.2" r="3.5" style="fill:#1F4E79"/><circle cx="213.3" cy="66.8" r="3.5" style="fill:#1F4E79"/><circle cx="233.8" cy="60.8" r="3.5" style="fill:#1F4E79"/><circle cx="254.3" cy="56.4" r="3.5" style="fill:#1F4E79"/><circle cx="274.8" cy="53.0" r="3.5" style="fill:#1F4E79"/><circle cx="315.7" cy="48.1" r="3.5" style="fill:#1F4E79"/><circle cx="356.7" cy="44.9" r="3.5" style="fill:#1F4E79"/><circle cx="397.6" cy="42.6" r="3.5" style="fill:#1F4E79"/><circle cx="479.5" cy="39.6" r="3.5" style="fill:#1F4E79"/>
+<g class="step" data-ord="1"><line x1="237.1" y1="20" x2="237.1" y2="260" stroke="#C0553A" stroke-width="2" stroke-dasharray="6 4"/><text x="245.1" y="180.0" class="lbl" style="fill:#C0553A">טמפרטורת בויל</text><text x="245.1" y="200.0" class="num" style="fill:#C0553A">408 K</text></g>
+<g class="step" data-ord="2"><text x="151.9" y="70.0" class="lbl" text-anchor="middle" style="fill:#1F4E79">משיכה</text><text x="397.6" y="80.0" class="lbl" text-anchor="middle" style="fill:#1F4E79">דחייה</text></g>
+</svg>
+  </div><div class="txt">
+    <div class="box idea step" data-ord="3"><b class="tag">טמפרטורת בויל</b><span class="m">B<sub>2</sub>(T<sub>B</sub>) = 0</span>. התיקון הראשון נעלם, והגז ״אידיאלי״ על תחום לחצים רחב — <span class="m">pV</span> כמעט קבוע, חוק בויל מתקיים הכי טוב. זה מה שראינו בחנקן ב-<span class="m">300 K</span>.</div>
+    <div class="tblwrap step" data-ord="4"><table class="rules">
+      <tr><th class="he">גז</th><th class="he">הליום</th><th class="he">חנקן</th><th class="he">ארגון</th><th>CO₂</th></tr>
+      <tr><td>T<sub>B</sub> [K]</td><td>23</td><td>327</td><td>408</td><td>715</td></tr>
+    </table></div>
+  </div></div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="דוגמה 4 — כמה B₂ שווה">
+  <div class="eyebrow">חלק ד · דוגמה 4</div>
+  <h2>ארגון ב-<span class="m">300 K</span> וב-<span class="m">10 bar</span>, <span class="m">B<sub>2</sub> = −15.2 cm³ mol⁻¹</span>. מה <span class="m">Z</span>?</h2>
+  <div class="box think"><b class="tag">הבעיה</b>הטור ב-<span class="m">ρ</span>, נתון <span class="m">p</span>. <b>הפתרון:</b> <span class="m">ρ = p/(ZRT)</span>, ו-<span class="m">Z</span> שונה מ-1 בתיקון קטן. אם נציב <span class="m">ρ ≈ p/RT</span> <b>בתוך התיקון</b> — נטעה רק ב״תיקון של תיקון״, מסדר <span class="m">ρ²</span>.</div>
+  <div class="chainstrip zoom step" data-ord="1">
+    <div class="crow"><span class="clab chk">Z</span><span class="cmath">Z ≈ 1 + B<sub>2</sub>p/RT = 1 + (−0.0152 × 10)/(0.083145 × 300)</span><span class="cd he"><span class="m">B<sub>2</sub></span> בליטר למול</span></div>
+    <div class="crow step" data-ord="2"><span class="clab side">=</span><span class="cmath">1 − 0.152/24.94 = 1 − 0.0061 = 0.9939</span><span class="cd he">נמדד: <span class="m">0.9941</span></span></div>
+  </div>
+  <div class="box key step" data-ord="3"><b class="tag">איבר אחד, שתי ספרות של הסטייה</b>את הקשר המדויק בין פיתוח בצפיפות לפיתוח בלחץ — בלמידה העצמית. <b>ועצרו וחשבו:</b> <span class="m">−15 cm³ mol⁻¹</span> הוא בסדר גודל של נפח מול ארגון נוזלי (<span class="m">28 cm³</span>) — כי <span class="m">B<sub>2</sub></span> הוא ״נפח אפקטיבי״ של זוג.</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="תרגול בכיתה 4">
+  <div class="eyebrow">חלק ד · תרגול בכיתה 4 · 10 דקות — כמו במעבדה</div>
+  <h2>ארגון ב-<span class="m">300 K</span>: לחלץ את <span class="m">B<sub>2</sub></span> ו-<span class="m">B<sub>3</sub></span></h2>
+  <div class="tblwrap"><table class="rules">
+    <tr><th>p [bar]</th><th>10</th><th>20</th><th>30</th><th>40</th><th>50</th><th>60</th></tr>
+    <tr><td>ρ [mol L⁻¹]</td><td>0.40331</td><td>0.81123</td><td>1.22349</td><td>1.63973</td><td>2.05955</td><td>2.48252</td></tr>
+    <tr class="step" data-ord="1"><td>(Z − 1)/ρ</td><td>−14.78</td><td>−14.31</td><td>−13.88</td><td>−13.43</td><td>−12.97</td><td>−12.51</td></tr>
+  </table></div>
+  <div class="chainstrip zoom tight step" data-ord="2">
+    <div class="crow"><span class="clab chk">(ב)</span><span class="cmath">B<sub>2</sub> = −15.2 cm³ mol⁻¹,  B<sub>3</sub> = 1.09×10³ cm⁶ mol⁻²</span><span class="cd he">חיתוך ושיפוע — ישר כמעט מושלם</span></div>
+    <div class="crow"><span class="clab chk">(ג)</span><span class="cmath">B<sub>2</sub> &lt; 0</span><span class="cd he">מתחת ל-<span class="m">T<sub>B</sub></span>; <span class="m">Z</span> יורד עם <span class="m">ρ</span></span></div>
+    <div class="crow"><span class="clab chk">(ד)</span><span class="cmath">Z(100 bar) ≈ 1 − 0.0638 + 0.0191 = 0.9553</span><span class="cd he">נמדד <span class="m">0.9556</span>; בלי <span class="m">B<sub>3</sub></span> — <span class="m">0.9362</span></span></div>
+  </div>
+  <div class="box think step" data-ord="3"><b class="tag">שימו לב לדיוק</b><span class="m">Z − 1</span> הוא הפרש של מספרים קרובים — חמש ספרות אחרי הנקודה, אחרת <span class="m">(Z − 1)/ρ</span> יוצא רעש. (<span class="m">R = 0.083145 L bar mol⁻¹ K⁻¹</span>, וכפול 1000 ל-cm³.)</div>
+</section>
+
+<section class="slide" data-part="חלק ד" data-title="הקדימון">
+  <div class="eyebrow">חלק ד · השאלה שנשארת פתוחה</div>
+  <h2>מאיפה <span class="m">B<sub>2</sub></span> בא — ואפשר לחזות אותו?</h2>
+  <div class="box idea"><b class="tag">ואן דר ואלס, שני פרמטרים</b><span class="m">a</span> — משיכה, <span class="m">b</span> — נפח המולקולות. לארגון: <span class="m">a = 1.355 L² bar mol⁻²</span>, <span class="m">b = 0.0320 L mol⁻¹</span>.</div>
+  <div class="cards3 step" data-ord="1">
+    <div class="card" style="--accent:var(--navy)"><h4>המודל חוזה</h4><div class="ln"><span class="m">T<sub>B</sub> = 509 K</span></div></div>
+    <div class="card" style="--accent:var(--terra)"><h4>הניסוי</h4><div class="ln"><span class="m">T<sub>B</sub> = 408 K</span></div></div>
+    <div class="card" style="--accent:var(--green)"><h4>בבית</h4><div class="ln he">מאיפה 509, ולמה הוא לא נכון</div></div>
+  </div>
+  <a class="simbanner step" data-ord="2" href="sim_realgas.html#c" target="_blank" rel="noopener"><span class="ic">🧪</span><span class="tx"><b>הסימולציה · לשוניות ג ו-ד</b><span>B₂(T) של ארגון וטמפרטורת בויל; איזותרמות של ואן דר ואלס עם a ו-b בזמן אמת</span></span><span class="go">פתחו</span></a>
+</section>
+
+<section class="slide" data-part="טעויות" data-title="טעויות קלאסיות">
+  <div class="eyebrow">טעויות קלאסיות · 7 דקות</div>
+  <h2>ארבע טעויות שחוזרות בכל בוחן</h2>
+  <div class="box mistake"><b class="tag">״הגז הזה אידיאלי״</b>יש רק <b>תנאים</b> שבהם גז קרוב לאידיאלי: אותו חנקן — <span class="m">Z = 1.005</span> או <span class="m">0.536</span>.</div>
+  <div class="box mistake step" data-ord="1"><b class="tag">״הלחץ שהחמצן מפעיל״</b>למערכת לחץ אחד. <span class="m">x<sub>i</sub>p</span> — הגדרה; ״לבדו״ — דלטון, רק באידיאלי.</div>
+  <div class="box mistake step" data-ord="2"><b class="tag">״נדחס יותר מדי״</b><span class="m">Z &lt; 1</span> היא תכונה של המצב: משיכה גוברת, הנפח קטן מהאידיאלי באותם <span class="m">T</span> ו-<span class="m">p</span>.</div>
+  <div class="box mistake step" data-ord="3"><b class="tag">״אפס פירושו אידיאלי״</b><span class="m">B<sub>2</sub> = 0</span>: רק התיקון הראשון נעלם; חנקן ב-<span class="m">300 K</span>, <span class="m">600 bar</span>: <span class="m">Z = 1.48</span>.</div>
+</section>
+
+<section class="slide" data-part="סיכום" data-title="סיכום">
+  <div class="eyebrow">סיכום · למידה עצמית 1 ותרגיל בית 3</div>
+  <h2>ארבע שורות — והמשך בבית</h2>
+  <div class="chainstrip zoom tight">
+    <div class="crow"><span class="clab chk">1</span><span class="cmath">T = lim<sub>ρ→0</sub> p/ρR</span><span class="cd he">גז אידיאלי הוא גבול — וההגדרה של הטמפרטורה</span></div>
+    <div class="crow step" data-ord="1"><span class="clab chk">2</span><span class="cmath">p<sub>i</sub> ≡ x<sub>i</sub>p</span><span class="cd he">הגדרה; דלטון רק באידיאלי; בממברנה משתווה μ</span></div>
+    <div class="crow step" data-ord="2"><span class="clab chk">3</span><span class="cmath">Z = pv/RT</span><span class="cd he">מתחת ל-1 משיכה, מעל — דחייה</span></div>
+    <div class="crow step" data-ord="3"><span class="clab chk">4</span><span class="cmath">Z = 1 + B<sub>2</sub>ρ + B<sub>3</sub>ρ² + ⋯</span><span class="cd he"><span class="m">B<sub>2</sub></span> — זוגות; חיתוך של <span class="m">(Z−1)/ρ</span>; מחליף סימן ב-<span class="m">T<sub>B</sub></span></span></div>
+  </div>
+  <div class="box key step" data-ord="4"><b class="tag">הערב באתר</b><b>למידה עצמית 1</b>: מפת דרכים, מערך מורחב, מצגת בקצב שלכם, תרגול מדורג, ובוחן עצמי עם קוד סיום — יעד 2.12. <b>תרגיל בית 3</b> (הגשה 2.12): המפגש והלמידה העצמית; חלק ג — ״הגז המסתורי״ בלשונית המשחק.</div>
+</section>
+
+</div>
+<footer id="foot">
+  <button id="prevb">◀ אחורה</button>
+  <button id="nextb">קדימה ▶</button>
+  <span class="cnt" id="cnt">1 / 1</span>
+  <span id="prog"><div></div></span>
+  <span class="hint">רווח או חץ שמאלה — צעד קדימה · חץ ימינה — אחורה</span>
+</footer>
+</div>
+<div id="toc"><div class="card"><h3>מפת השקפים</h3><div id="toclist"></div></div></div>
+<script>
+/* ============ מנוע המצגת ============ */
+const slides=[...document.querySelectorAll(".slide")];
+let cur=0;
+const chip=document.getElementById("partchip"),
+      cnt=document.getElementById("cnt"),
+      prog=document.querySelector("#prog>div");
+
+function stepsOf(s){ return [...s.querySelectorAll(".step")]; }
+/* שלבים עם אותו data-ord נחשפים יחד — כך עקומה בגרף מופיעה
+   באותה לחיצה עם השורה בטקסט שמדברת עליה                     */
+function groupsOf(s){
+  const els=stepsOf(s), map=new Map(), groups=[];
+  els.forEach((e,i)=>{
+    const k=(e.dataset.ord!==undefined)?("o"+e.dataset.ord):("i"+i);
+    if(!map.has(k)){ const g=[]; map.set(k,g); groups.push(g); }
+    map.get(k).push(e);
+  });
+  return groups;
+}
+function show(i, fromEnd=false){
+  slides[cur].classList.remove("on");
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  const s=slides[cur];
+  s.classList.add("on"); s.scrollTop=0;
+  stepsOf(s).forEach(e=>e.classList.toggle("on", fromEnd));
+  chip.textContent=s.dataset.part||"";
+  cnt.textContent=(cur+1)+" / "+slides.length;
+  prog.style.width=(100*(cur+1)/slides.length)+"%";
+}
+function next(){
+  const g=groupsOf(slides[cur]).find(g=>g.some(e=>!e.classList.contains("on")));
+  if(g){ g.forEach(e=>e.classList.add("on"));
+    g[0].scrollIntoView({block:"nearest",behavior:"smooth"}); return; }
+  if(cur<slides.length-1) show(cur+1);
+}
+function prev(){
+  const g=[...groupsOf(slides[cur])].reverse().find(g=>g.some(e=>e.classList.contains("on")));
+  if(g){ g.forEach(e=>e.classList.remove("on")); return; }
+  if(cur>0) show(cur-1, true);
+}
+document.getElementById("nextb").onclick=next;
+document.getElementById("prevb").onclick=prev;
+document.getElementById("stage").addEventListener("click", e=>{
+  if(e.target.closest("a,button")) return; next();
+});
+addEventListener("keydown", e=>{
+  if(e.key===" "||e.key==="Enter"||e.key==="ArrowLeft"||e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault(); next();}
+  else if(e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault(); prev();}
+  else if(e.key==="Home"){show(0)} else if(e.key==="End"){show(slides.length-1,true)}
+});
+/* מפת שקפים */
+const toc=document.getElementById("toc");
+document.getElementById("tocbtn").onclick=()=>toc.classList.add("on");
+toc.addEventListener("click",e=>{ if(e.target===toc) toc.classList.remove("on"); });
+const groups={};
+slides.forEach((s,i)=>{ const p=s.dataset.part||"שער";
+  (groups[p]=groups[p]||[]).push({i, t:s.dataset.title||("שקף "+(i+1))}); });
+document.getElementById("toclist").innerHTML=Object.entries(groups).map(([p,arr])=>
+  `<div class="grp"><b>${p}</b>`+arr.map(o=>
+    `<button class="jump" data-i="${o.i}">${o.t}</button>`).join("")+`</div>`).join("");
+document.querySelectorAll("#toc .jump").forEach(b=>b.onclick=()=>{ toc.classList.remove("on"); show(+b.dataset.i); });
+show(0);
+</script>
+</body>
+</html>

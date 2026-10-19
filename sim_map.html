@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מפת הגובה · יחידה 0</title>
+<style>
+:root{
+  --bg:#FBF8F1; --panel:#FFFFFF; --primary:#1F4E79; --accent:#2A9D8F; --accentdk:#1E7A6E;
+  --gold:#D9A441; --goldtx:#8A6414; --warn:#C0553A; --sky:#7B9ACC; --green:#2E6F40;
+  --ink:#1A1A1A; --muted:#6B7280; --line:#DDE3EC; --soft:#EEF2FA;
+}
+[data-theme="dark"]{
+  --bg:#12181f; --panel:#182029; --primary:#8FC1E8; --accent:#5FD0C0; --accentdk:#7FE0D0;
+  --gold:#E7C455; --goldtx:#E7C455; --warn:#E8886B; --sky:#9DB6E0; --green:#6FBF83;
+  --ink:#E9EEF4; --muted:#9AA7B4; --line:#2B3644; --soft:#1e2833;
+}
+*{box-sizing:border-box}
+html,body{margin:0; padding:0}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 "Heebo",system-ui,-apple-system,sans-serif;
+  padding:12px clamp(10px,2.5vw,28px) 40px; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+header.top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+header.top h1{font-size:clamp(18px,2.4vw,25px); margin:0; color:var(--primary); font-weight:900}
+header.top .sub{color:var(--muted); font-size:13.5px}
+header.top .sp{flex:1}
+button{font:inherit; cursor:pointer}
+.ghost{background:var(--panel); color:var(--ink); border:1.5px solid var(--line);
+  border-radius:9px; padding:7px 13px; font-weight:700; min-height:38px}
+.ghost:hover{border-color:var(--primary)}
+.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; border-bottom:2px solid var(--line); padding-bottom:8px}
+.tabs button{background:transparent; color:var(--muted); border:none; border-bottom:3px solid transparent;
+  padding:8px 12px; min-height:44px; font-weight:800; font-size:14px; border-radius:6px 6px 0 0}
+.tabs button .k{display:inline-block; background:var(--line); color:var(--ink); border-radius:999px;
+  padding:1px 9px; margin-inline-end:6px; font-size:12.5px}
+.tabs button[aria-selected="true"]{color:var(--primary); border-bottom-color:var(--gold)}
+.tabs button[aria-selected="true"] .k{background:var(--gold); color:#2f2607}
+.tabs button.game{color:var(--accentdk)}
+.pane{display:none}
+.pane.on{display:block}
+.fnbar{background:var(--panel); border:1.5px solid var(--line); border-right:6px solid var(--primary);
+  border-radius:14px; padding:11px 16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.fnbar .lab{font-size:13px; font-weight:800; color:var(--muted); white-space:nowrap}
+.fnbar .expr{flex:1; text-align:center; direction:ltr; unicode-bidi:isolate;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(18px,2.6vw,27px); font-weight:700; color:var(--primary); line-height:1.35}
+.wrap{display:grid; grid-template-columns:minmax(0,1.55fr) minmax(285px,1fr);
+  gap:clamp(10px,1.8vw,20px); align-items:start}
+@media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+.card{background:var(--panel); border:1.5px solid var(--line); border-radius:14px; padding:12px 14px}
+.card h3{margin:0 0 8px; font-size:15px; color:var(--primary); font-weight:800}
+.card h3 .hint{font-weight:600; color:var(--muted); font-size:12.5px}
+/* גובה קבוע ב-CSS — חובה. בלעדיו הקנבס מכפיל את עצמו בכל ציור מחדש. */
+canvas{width:100%; height:clamp(320px,52vh,460px); display:block; border-radius:10px; touch-action:none}
+@media (max-width:900px){ canvas{height:clamp(300px,48vh,400px)} }
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
+.chips button{font-weight:700; font-size:13.5px; min-height:40px; background:var(--panel);
+  color:var(--ink); border:1.5px solid var(--line); border-radius:9px; padding:6px 11px;
+  direction:ltr; font-family:"STIX Two Math",Georgia,serif}
+.chips button[aria-pressed="true"]{background:var(--primary); color:#fff; border-color:var(--primary)}
+[data-theme="dark"] .chips button[aria-pressed="true"]{color:#12181f}
+.seg{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
+.seg button{flex:1; min-height:42px; border-radius:9px; border:1.6px solid var(--line); background:var(--panel);
+  color:var(--muted); font-weight:800; font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.ctl{margin:10px 0}
+.ctl label{display:flex; justify-content:space-between; align-items:baseline; font-weight:800; font-size:14px; color:var(--primary)}
+.ctl label .v{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-weight:700; color:var(--warn); font-size:15px}
+.ctl input[type=range]{width:100%; margin-top:4px; accent-color:var(--primary); height:30px}
+.reads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+.rd{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:7px 10px}
+.rd .t{font-size:12px; color:var(--muted); font-weight:700}
+.rd .n{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-size:clamp(16px,1.9vw,21px); font-weight:800; color:var(--primary); line-height:1.3}
+.rd.gold{background:color-mix(in srgb, var(--gold) 16%, var(--panel)); border-color:var(--gold)}
+.rd.gold .n{color:var(--goldtx)}
+.rd.warn .n{color:var(--warn)} .rd.green .n{color:var(--green)} .rd.acc .n{color:var(--accentdk)}
+.rd.wide{grid-column:1 / -1}
+.bigbtn{width:100%; margin-top:9px; min-height:46px; border-radius:11px; font-weight:800;
+  font-size:15px; border:2px solid var(--gold); background:var(--gold); color:#3a2f08}
+.resetb{width:100%; margin-top:7px; min-height:40px; border-radius:10px; font-weight:700;
+  border:1.5px dashed var(--line); background:transparent; color:var(--muted)}
+.note{margin-top:11px; background:color-mix(in srgb, var(--primary) 6%, var(--panel));
+  border-right:4px solid var(--primary); border-radius:9px; padding:9px 12px; font-size:13.5px;
+  line-height:1.65; min-height:70px}
+.note b{color:var(--primary)}
+.note .m, .m{direction:ltr; unicode-bidi:isolate; display:inline-block; font-family:"STIX Two Math",Georgia,serif; font-size:1.06em}
+.verdict{margin-top:8px; border-radius:10px; padding:9px 12px; font-weight:800; text-align:center; font-size:15px}
+.verdict.ok{background:color-mix(in srgb, var(--green) 14%, var(--panel)); color:var(--green); border:1.5px solid var(--green)}
+.verdict.bad{background:color-mix(in srgb, var(--warn) 12%, var(--panel)); color:var(--warn); border:1.5px solid var(--warn)}
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12.5px; color:var(--muted)}
+.legend i{display:inline-block; width:15px; height:9px; border-radius:2px; vertical-align:middle; margin-inline-end:5px}
+.foot{margin-top:14px; font-size:12.5px; color:var(--muted); text-align:center}
+.num{display:flex; align-items:center; gap:10px; margin:6px 0 10px}
+.num input{width:90px; font:inherit; font-size:18px; font-weight:800; padding:6px 10px; border:2px solid var(--primary);
+  border-radius:9px; direction:ltr; text-align:center; background:var(--panel); color:var(--ink)}
+.num label{font-weight:800; color:var(--primary)}
+textarea{width:100%; min-height:150px; font:13px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr;
+  border:1.5px solid var(--line); border-radius:10px; padding:8px; background:var(--bg); color:var(--ink); margin-top:8px}
+.station{display:none} .station.on{display:block}
+.pill{display:inline-block; background:var(--soft); color:var(--primary); border-radius:999px; padding:2px 10px; font-weight:800; font-size:12.5px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>מפת הגובה</h1>
+  <span class="sub">יחידה 0 · פונקציות של כמה משתנים, דיפרנציאל שלם, מסלולים — והמשחק</span>
+  <span class="sp"></span>
+  <button class="ghost" id="themeb">מצב כהה</button>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" data-tab="a" aria-selected="true"><span class="k">א</span>המשטח</button>
+  <button role="tab" data-tab="b" aria-selected="false"><span class="k">ב</span>הדיפרנציאל</button>
+  <button role="tab" data-tab="c" aria-selected="false"><span class="k">ג</span>אוילר</button>
+  <button role="tab" data-tab="d" aria-selected="false"><span class="k">ד</span>מסלולים</button>
+  <button role="tab" data-tab="e" aria-selected="false"><span class="k">ה</span>מ-dS אל S</button>
+  <button role="tab" data-tab="game" class="game" aria-selected="false"><span class="k">★</span>המשחק</button>
+</div>
+
+<!-- ============ א המשטח ============ -->
+<div class="pane on" id="pane-a">
+  <div class="fnbar"><span class="lab">פונקציה של שני משתנים</span><span class="expr" id="a-expr"></span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>מפת הגובה ושני החיתוכים <span class="hint">— גררו את הנקודה על המפה</span></h3>
+      <canvas id="cv-a" aria-label="קווי גובה ושני חיתוכים"></canvas>
+      <div class="legend"><span><i style="background:var(--primary)"></i>חיתוך לאורך המשתנה הראשון (השני קפוא)</span><span><i style="background:var(--accent)"></i>חיתוך לאורך המשתנה השני (הראשון קפוא)</span><span><i style="background:var(--warn)"></i>משיק = הנגזרת החלקית</span></div>
+    </div>
+    <div class="card">
+      <h3>בוחרים פונקציה</h3>
+      <div class="chips" id="a-chips"></div>
+      <div class="ctl"><label><span id="a-xl">x</span><span class="v" id="a-xv"></span></label><input type="range" id="a-x" min="0" max="1000" value="500"></div>
+      <div class="ctl"><label><span id="a-yl">y</span><span class="v" id="a-yv"></span></label><input type="range" id="a-y" min="0" max="1000" value="500"></div>
+      <div class="reads">
+        <div class="rd wide"><div class="t" id="a-ft">f</div><div class="n" id="a-f"></div></div>
+        <div class="rd"><div class="t" id="a-fxt">∂f/∂x</div><div class="n" id="a-fx"></div></div>
+        <div class="rd acc"><div class="t" id="a-fyt">∂f/∂y</div><div class="n" id="a-fy"></div></div>
+      </div>
+      <div class="note" id="a-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ב הדיפרנציאל ============ -->
+<div class="pane" id="pane-b">
+  <div class="fnbar"><span class="lab">שני צעדים קטנים</span><span class="expr">df = (∂f/∂x)<sub>y</sub> dx + (∂f/∂y)<sub>x</sub> dy</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>הצעד הראשון, הצעד השני, והשארית <span class="hint">— הקטינו את הצעדים וראו מה נעלם קודם</span></h3>
+      <canvas id="cv-b" aria-label="שני צעדים על מפת הגובה ועמודות של התרומות"></canvas>
+      <div class="legend"><span><i style="background:var(--primary)"></i>תרומת הצעד ב-x</span><span><i style="background:var(--accent)"></i>תרומת הצעד ב-y</span><span><i style="background:var(--gold)"></i>הדיפרנציאל df (הסכום)</span><span><i style="background:var(--warn)"></i>השארית: Δf − df</span></div>
+    </div>
+    <div class="card">
+      <h3>בוחרים פונקציה ונקודה</h3>
+      <div class="chips" id="b-chips"></div>
+      <div class="ctl"><label><span id="b-xl">x</span><span class="v" id="b-xv"></span></label><input type="range" id="b-x" min="0" max="1000" value="350"></div>
+      <div class="ctl"><label><span id="b-yl">y</span><span class="v" id="b-yv"></span></label><input type="range" id="b-y" min="0" max="1000" value="350"></div>
+      <div class="ctl"><label><span>גודל הצעדים (כאחוז מהתחום)</span><span class="v" id="b-hv"></span></label><input type="range" id="b-h" min="1" max="40" value="25"></div>
+      <div class="reads">
+        <div class="rd"><div class="t">הצעד הראשון: (∂f/∂x) dx</div><div class="n" id="b-t1"></div></div>
+        <div class="rd acc"><div class="t">הצעד השני: (∂f/∂y) dy</div><div class="n" id="b-t2"></div></div>
+        <div class="rd gold"><div class="t">df = הסכום</div><div class="n" id="b-df"></div></div>
+        <div class="rd"><div class="t">Δf המדויק</div><div class="n" id="b-ex"></div></div>
+        <div class="rd warn wide"><div class="t">השארית Δf − df (יחסית ל-df)</div><div class="n" id="b-res"></div></div>
+      </div>
+      <button class="bigbtn" id="b-go">▶ הקטינו את הצעדים</button>
+      <button class="resetb" id="b-reset">איפוס</button>
+      <div class="note" id="b-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ג אוילר ============ -->
+<div class="pane" id="pane-c">
+  <div class="fnbar"><span class="lab">האם קיימת f?</span><span class="expr" id="c-expr"></span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>מפת ההפרש ∂M/∂y − ∂N/∂x <span class="hint">— אפור בכל מקום: שלם. צבעוני: לא שלם</span></h3>
+      <canvas id="cv-c" aria-label="מפת צבע של ההפרש בין הנגזרות המעורבות ושדה החצים"></canvas>
+      <div class="legend"><span><i style="background:#c8c8c8"></i>ההפרש אפס</span><span><i style="background:var(--warn)"></i>ההפרש חיובי</span><span><i style="background:var(--sky)"></i>ההפרש שלילי</span><span>חצים: הווקטור (M, N)</span></div>
+    </div>
+    <div class="card">
+      <h3>בוחרים דיפרנציאל</h3>
+      <div class="chips" id="c-chips"></div>
+      <div class="ctl"><label><span id="c-xl">x</span><span class="v" id="c-xv"></span></label><input type="range" id="c-x" min="0" max="1000" value="500"></div>
+      <div class="ctl"><label><span id="c-yl">y</span><span class="v" id="c-yv"></span></label><input type="range" id="c-y" min="0" max="1000" value="500"></div>
+      <div class="reads">
+        <div class="rd"><div class="t">M בנקודה</div><div class="n" id="c-M"></div></div>
+        <div class="rd"><div class="t">N בנקודה</div><div class="n" id="c-N"></div></div>
+        <div class="rd"><div class="t">∂M/∂y</div><div class="n" id="c-My"></div></div>
+        <div class="rd"><div class="t">∂N/∂x</div><div class="n" id="c-Nx"></div></div>
+      </div>
+      <div class="verdict" id="c-verdict"></div>
+      <div class="note" id="c-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ד מסלולים ============ -->
+<div class="pane" id="pane-d">
+  <div class="fnbar"><span class="lab">מול אחד של גז אידיאלי, ממצב 1 למצב 2</span><span class="expr">dV = (nR/p) dT − (nRT/p²) dp &nbsp;·&nbsp; đW = −nR dT + (nRT/p) dp</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>המסלול במישור T–p ובמישור p–V <span class="hint">— השטח מתחת למסלול ב-p–V הוא מינוס העבודה</span></h3>
+      <canvas id="cv-d" aria-label="מסלול במישור טמפרטורה-לחץ ובמישור לחץ-נפח"></canvas>
+      <div class="legend"><span><i style="background:var(--primary)"></i>מסלול A</span><span><i style="background:var(--accent)"></i>מסלול B</span><span><i style="background:var(--goldtx)"></i>מסלול C</span><span><i style="background:var(--warn)"></i>מסלול עקום</span></div>
+    </div>
+    <div class="card">
+      <h3>המצבים והמסלול</h3>
+      <div class="seg" id="d-path">
+        <button data-p="A" aria-pressed="true">A</button>
+        <button data-p="B" aria-pressed="false">B</button>
+        <button data-p="C" aria-pressed="false">C</button>
+        <button data-p="S" aria-pressed="false">עקום</button>
+      </div>
+      <div class="ctl"><label><span>T₁ [K]</span><span class="v" id="d-T1v"></span></label><input type="range" id="d-T1" min="200" max="600" value="300"></div>
+      <div class="ctl"><label><span>p₁ [bar]</span><span class="v" id="d-p1v"></span></label><input type="range" id="d-p1" min="50" max="500" value="100"></div>
+      <div class="ctl"><label><span>T₂ [K]</span><span class="v" id="d-T2v"></span></label><input type="range" id="d-T2" min="200" max="600" value="400"></div>
+      <div class="ctl"><label><span>p₂ [bar]</span><span class="v" id="d-p2v"></span></label><input type="range" id="d-p2" min="50" max="500" value="200"></div>
+      <div class="ctl" id="d-bendc"><label><span>עקמומיות המסלול</span><span class="v" id="d-bendv"></span></label><input type="range" id="d-bend" min="-100" max="100" value="60"></div>
+      <div class="reads">
+        <div class="rd"><div class="t">∫dV לאורך המסלול [L]</div><div class="n" id="d-dV"></div></div>
+        <div class="rd"><div class="t">V₂ − V₁ [L]</div><div class="n" id="d-V21"></div></div>
+        <div class="rd gold wide"><div class="t">∫đW לאורך המסלול [J]</div><div class="n" id="d-W"></div></div>
+        <div class="rd"><div class="t">W לאורך A [J]</div><div class="n" id="d-WA"></div></div>
+        <div class="rd acc"><div class="t">W לאורך B [J]</div><div class="n" id="d-WB"></div></div>
+        <div class="rd warn wide"><div class="t">המעגל A קדימה, B אחורה: ∮đW [J]</div><div class="n" id="d-cyc"></div></div>
+      </div>
+      <button class="bigbtn" id="d-go">▶ הריצו את המסלול</button>
+      <div class="note" id="d-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ה שחזור ============ -->
+<div class="pane" id="pane-e">
+  <div class="fnbar"><span class="lab">מטפסים על ההר משני כיוונים</span><span class="expr" id="e-expr"></span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>שני שחזורים — ״קודם x ואז y״ מול ״קודם y ואז x״ <span class="hint">— ומפת ההפרש ביניהם</span></h3>
+      <canvas id="cv-e" aria-label="שני משטחים משוחזרים ומפת ההפרש"></canvas>
+      <div class="legend"><span><i style="background:var(--primary)"></i>שחזור 1: קודם x ואז y</span><span><i style="background:var(--accent)"></i>שחזור 2: קודם y ואז x</span><span><i style="background:var(--warn)"></i>ההפרש בין השחזורים</span></div>
+    </div>
+    <div class="card">
+      <h3>בוחרים דיפרנציאל</h3>
+      <div class="chips" id="e-chips"></div>
+      <div class="ctl"><label><span id="e-xl">x</span><span class="v" id="e-xv"></span></label><input type="range" id="e-x" min="0" max="1000" value="700"></div>
+      <div class="ctl"><label><span id="e-yl">y</span><span class="v" id="e-yv"></span></label><input type="range" id="e-y" min="0" max="1000" value="700"></div>
+      <div class="reads">
+        <div class="rd"><div class="t">שחזור 1 (קודם x)</div><div class="n" id="e-f1"></div></div>
+        <div class="rd acc"><div class="t">שחזור 2 (קודם y)</div><div class="n" id="e-f2"></div></div>
+        <div class="rd warn wide"><div class="t">ההפרש</div><div class="n" id="e-diff"></div></div>
+      </div>
+      <div class="verdict" id="e-verdict"></div>
+      <div class="note" id="e-note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ המשחק ============ -->
+<div class="pane" id="pane-game">
+  <div class="fnbar"><span class="lab">המסע על ההר — שלוש תחנות</span><span class="expr" id="g-expr">?</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3 id="g-title">תחנה 1 — שלם או לא</h3>
+      <canvas id="cv-g" aria-label="קנבס המשחק"></canvas>
+      <div class="note" id="g-note"></div>
+    </div>
+    <div class="card">
+      <div class="num"><label for="g-num">מספר התלמיד (1 עד 50):</label><input type="number" id="g-num" min="1" max="50" step="1" placeholder="—"></div>
+      <div class="seg" id="g-st">
+        <button data-s="1" aria-pressed="true">תחנה 1 · השדות</button>
+        <button data-s="2" aria-pressed="false">תחנה 2 · המסלול</button>
+        <button data-s="3" aria-pressed="false">תחנה 3 · הגז</button>
+      </div>
+      <div class="station on" id="g-s1">
+        <div class="seg" id="g-field"><button data-f="1" aria-pressed="true">שדה 1</button><button data-f="2" aria-pressed="false">שדה 2</button></div>
+        <div class="ctl"><label><span>x</span><span class="v" id="g-xv"></span></label><input type="range" id="g-x" min="0" max="1000" value="500"></div>
+        <div class="ctl"><label><span>y</span><span class="v" id="g-yv"></span></label><input type="range" id="g-y" min="0" max="1000" value="500"></div>
+        <div class="reads">
+          <div class="rd"><div class="t">M בנקודה</div><div class="n" id="g-M"></div></div>
+          <div class="rd"><div class="t">N בנקודה</div><div class="n" id="g-N"></div></div>
+          <div class="rd"><div class="t">∂M/∂y</div><div class="n" id="g-My"></div></div>
+          <div class="rd"><div class="t">∂N/∂x</div><div class="n" id="g-Nx"></div></div>
+        </div>
+      </div>
+      <div class="station" id="g-s2">
+        <div class="seg" id="g-field2"><button data-f="1" aria-pressed="true">שדה 1</button><button data-f="2" aria-pressed="false">שדה 2</button></div>
+        <div class="reads">
+          <div class="rd wide"><div class="t">נקודת הסיום (x₁, y₁)</div><div class="n" id="g-end"></div></div>
+          <div class="rd"><div class="t">∫ לאורך ״קודם x ואז y״</div><div class="n" id="g-I1"></div></div>
+          <div class="rd acc"><div class="t">∫ לאורך ״קודם y ואז x״</div><div class="n" id="g-I2"></div></div>
+          <div class="rd warn wide"><div class="t">∮ לאורך המלבן (הפרש)</div><div class="n" id="g-loop"></div></div>
+        </div>
+      </div>
+      <div class="station" id="g-s3">
+        <div class="reads">
+          <div class="rd"><div class="t">מצב 1: T₁ [K], p₁ [bar]</div><div class="n" id="g-st1"></div></div>
+          <div class="rd"><div class="t">מצב 2: T₂ [K], p₂ [bar]</div><div class="n" id="g-st2"></div></div>
+          <div class="rd"><div class="t">V₁ [L]</div><div class="n" id="g-V1"></div></div>
+          <div class="rd"><div class="t">V₂ [L]</div><div class="n" id="g-V2"></div></div>
+          <div class="rd"><div class="t">W לאורך A [J]</div><div class="n" id="g-WA"></div></div>
+          <div class="rd acc"><div class="t">W לאורך B [J]</div><div class="n" id="g-WB"></div></div>
+          <div class="rd warn wide"><div class="t">∮đW: A קדימה, B אחורה [J]</div><div class="n" id="g-cyc"></div></div>
+        </div>
+      </div>
+      <button class="bigbtn" id="g-export">ייצוא הנתונים שלי</button>
+      <textarea id="g-out" readonly placeholder="כאן יופיע סיכום הנתונים — להעתקה לתרגיל הבית"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="foot">מפת הגובה · תרמודינמיקה לכימאים · יחידה 0 · v1.0 · ד״ר עומרי מורג</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const R_GAS = 8.314;
+function setupCanvas(canvas){
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(10, Math.floor(rect.width)), cssH = Math.max(10, Math.floor(rect.height));
+  if(rect.width < 2 || rect.height < 2) return null; /* לשונית מוסתרת */
+  if(canvas.width !== Math.round(cssW*dpr) || canvas.height !== Math.round(cssH*dpr)){ canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr); }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+  return { ctx, w:cssW, h:cssH };
+}
+/* עברית ומספרים לעולם לא באותה מחרוזת; הכיוון נקבע במפורש בכל fillText */
+function heT(ctx,t,x,y,a){ ctx.save(); ctx.direction='rtl'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function ltrT(ctx,t,x,y,a){ ctx.save(); ctx.direction='ltr'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function fmt(v,d){ if(!Number.isFinite(v)) return '—'; return v.toFixed(d===undefined?3:d); }
+function fmtS(v,d){ if(!Number.isFinite(v)) return '—'; const s=Math.abs(v).toFixed(d===undefined?3:d); return (v<0 && +s!==0?'-':'')+s; }
+function niceTicks(a,b,px,per){
+  const n=Math.max(2, Math.floor(px/per)); const raw=(b-a)/n;
+  const p=Math.pow(10,Math.floor(Math.log10(raw))); const m=raw/p;
+  const step=(m<1.5?1:m<3.5?2:m<7.5?5:10)*p;
+  const out=[]; for(let t=Math.ceil(a/step-1e-9)*step; t<=b+1e-9; t+=step) out.push(+t.toFixed(10));
+  return out;
+}
+function plot(x0,x1,y0,y1,xr,yr){
+  return { x0,x1,y0,y1, X:x=>x0+(x-xr[0])/(xr[1]-xr[0])*(x1-x0), Y:y=>y0-(y-yr[0])/(yr[1]-yr[0])*(y0-y1),
+           invX:px=>xr[0]+(px-x0)/(x1-x0)*(xr[1]-xr[0]), invY:py=>yr[0]+(y0-py)/(y0-y1)*(yr[1]-yr[0]) };
+}
+function frame(ctx,P,xr,yr,opt){
+  opt=opt||{};
+  ctx.save();
+  ctx.textBaseline='middle'; ctx.font='700 11.5px Heebo, system-ui, sans-serif';
+  ctx.strokeStyle=css('--line'); ctx.lineWidth=1; ctx.beginPath();
+  const xt=niceTicks(xr[0],xr[1],P.x1-P.x0,70), yt=niceTicks(yr[0],yr[1],P.y0-P.y1,50);
+  for(const t of xt){ ctx.moveTo(P.X(t),P.y1); ctx.lineTo(P.X(t),P.y0); }
+  for(const t of yt){ ctx.moveTo(P.x0,P.Y(t)); ctx.lineTo(P.x1,P.Y(t)); }
+  ctx.stroke();
+  ctx.strokeStyle=css('--muted'); ctx.lineWidth=1.2; ctx.strokeRect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1);
+  ctx.fillStyle=css('--muted');
+  for(const t of xt){ ltrT(ctx, opt.xfmt?opt.xfmt(t):String(t), P.X(t), P.y0+11); }
+  for(const t of yt){ ltrT(ctx, opt.yfmt?opt.yfmt(t):String(t), P.x0-5, P.Y(t), 'right'); }
+  ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif';
+  if(opt.xlab) ltrT(ctx,opt.xlab,(P.x0+P.x1)/2,P.y0+26);
+  if(opt.ylab){ ctx.save(); ctx.translate(P.x0-34,(P.y0+P.y1)/2); ctx.rotate(-Math.PI/2); ltrT(ctx,opt.ylab,0,0); ctx.restore(); }
+  if(opt.title){ ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif'; heT(ctx,opt.title,(P.x0+P.x1)/2,P.y1-11); }
+  ctx.restore();
+}
+/* מפת צבע: ערך בין -1 ל-1 → תכלת..אפור..חמרה */
+function divColor(t){
+  t=Math.max(-1,Math.min(1,t));
+  const g=[200,200,200], w=[192,85,58], s=[123,154,204];
+  const c = t>=0 ? g.map((v,i)=>v+(w[i]-v)*t) : g.map((v,i)=>v+(s[i]-v)*(-t));
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+/* מפת גובה: ערך 0..1 → שמנת..כחול */
+function heightColor(t){
+  t=Math.max(0,Math.min(1,t));
+  const a=[251,248,241], b=[31,78,121];
+  const c=a.map((v,i)=>v+(b[i]-v)*t);
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+function colorMap(ctx,P,xr,yr,fn,scaleFn,nx,ny){
+  nx=nx||60; ny=ny||45;
+  const cw=(P.x1-P.x0)/nx, ch=(P.y0-P.y1)/ny;
+  for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+    const x=xr[0]+(i+0.5)/nx*(xr[1]-xr[0]), y=yr[0]+(j+0.5)/ny*(yr[1]-yr[0]);
+    const v=fn(x,y); if(!Number.isFinite(v)) continue;
+    ctx.fillStyle=scaleFn(v); ctx.fillRect(P.x0+i*cw, P.y0-(j+1)*ch, cw+0.6, ch+0.6);
+  }
+}
+/* קווי גובה בשיטת ריבועים צועדים — פשוטה ומספיקה */
+function contours(ctx,P,xr,yr,fn,levels,color,nx,ny){
+  nx=nx||70; ny=ny||52;
+  const g=[]; for(let i=0;i<=nx;i++){ g.push([]); for(let j=0;j<=ny;j++){ g[i].push(fn(xr[0]+i/nx*(xr[1]-xr[0]), yr[0]+j/ny*(yr[1]-yr[0]))); } }
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.1; ctx.beginPath();
+  const px=(i)=>P.X(xr[0]+i/nx*(xr[1]-xr[0])), py=(j)=>P.Y(yr[0]+j/ny*(yr[1]-yr[0]));
+  for(const L of levels){
+    for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+      const v=[g[i][j],g[i+1][j],g[i+1][j+1],g[i][j+1]]; if(v.some(t=>!Number.isFinite(t))) continue;
+      const pts=[];
+      const edge=(a,b,xa,ya,xb,yb)=>{ if((a-L)*(b-L)<0){ const t=(L-a)/(b-a); pts.push([xa+(xb-xa)*t, ya+(yb-ya)*t]); } };
+      edge(v[0],v[1],px(i),py(j),px(i+1),py(j)); edge(v[1],v[2],px(i+1),py(j),px(i+1),py(j+1));
+      edge(v[2],v[3],px(i+1),py(j+1),px(i),py(j+1)); edge(v[3],v[0],px(i),py(j+1),px(i),py(j));
+      if(pts.length>=2){ ctx.moveTo(pts[0][0],pts[0][1]); ctx.lineTo(pts[1][0],pts[1][1]); if(pts.length===4){ ctx.moveTo(pts[2][0],pts[2][1]); ctx.lineTo(pts[3][0],pts[3][1]); } }
+    }
+  }
+  ctx.stroke(); ctx.restore();
+}
+function minmax(fn,xr,yr,n){ n=n||40; let lo=Infinity,hi=-Infinity; for(let i=0;i<=n;i++) for(let j=0;j<=n;j++){ const v=fn(xr[0]+i/n*(xr[1]-xr[0]), yr[0]+j/n*(yr[1]-yr[0])); if(Number.isFinite(v)){ lo=Math.min(lo,v); hi=Math.max(hi,v);} } if(!(hi>lo)){hi=lo+1;} return [lo,hi]; }
+function dot(ctx,x,y,r,color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); }
+function arrow(ctx,x0,y0,x1,y1,color,w){ ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=w||2.4; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0), L=8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-L*Math.cos(a-0.45),y1-L*Math.sin(a-0.45)); ctx.lineTo(x1-L*Math.cos(a+0.45),y1-L*Math.sin(a+0.45)); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function simpson(f,a,b,n){ n=n||400; if(n%2)n++; const h=(b-a)/n; let s=f(a)+f(b); for(let i=1;i<n;i++){ s+=f(a+i*h)*(i%2?4:2); } return s*h/3; }
+/* גרירה על קנבס: מחזיר קואורדינטות CSS */
+function dragOn(canvas, onmove){
+  let down=false;
+  const pos=e=>{ const r=canvas.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [t.clientX-r.left, t.clientY-r.top]; };
+  canvas.addEventListener('pointerdown',e=>{ down=true; canvas.setPointerCapture(e.pointerId); onmove(...pos(e)); });
+  canvas.addEventListener('pointermove',e=>{ if(down) onmove(...pos(e)); });
+  canvas.addEventListener('pointerup',()=>{down=false;}); canvas.addEventListener('pointercancel',()=>{down=false;});
+}
+
+/* ============================================================
+   הפונקציות של לשוניות א–ב (עם נגזרות אנליטיות — מהמערך)
+   ============================================================ */
+const A_CONST=1e-3; /* המערכת הביתית: a בסקאלה נוחה לציור */
+const FUNS = [
+  { key:'V', lbl:'V(T,p) = RT/p', expr:'V(T, p) = nRT / p,  n = 1 mol', xl:'T [K]', yl:'p [bar]', xr:[200,600], yr:[0.5,5],
+    f:(T,p)=>R_GAS*T/(p*1e5)*1000, fx:(T,p)=>R_GAS/(p*1e5)*1000, fy:(T,p)=>-R_GAS*T/(p*p*1e5)*1000, unit:'L', xunit:'K', yunit:'bar',
+    note:'הנפח (בליטרים) של מול אחד. החיתוך לאורך <span class="m">T</span> (ב-<span class="m">p</span> קבוע) הוא <b>קו ישר</b> — השיפוע <span class="m">nR/p</span> קבוע. החיתוך לאורך <span class="m">p</span> הוא <b>היפרבולה</b> — השיפוע <span class="m">−nRT/p²</span> תלוי במקום. זו דוגמה 1 במערך.' },
+  { key:'U', lbl:'U = aVT⁴', expr:'U(T, V) = a V T⁴', xl:'T', yl:'V', xr:[1,3], yr:[0.2,2],
+    f:(T,V)=>V*T**4, fx:(T,V)=>4*V*T**3, fy:(T,V)=>T**4, unit:'', xunit:'', yunit:'',
+    note:'המערכת הביתית (ב-<span class="m">a = 1</span>). לאורך <span class="m">V</span> החיתוך הוא <b>קו ישר</b> ששיפועו <span class="m">aT⁴</span>; לאורך <span class="m">T</span> הוא רביעי-מעלה ועולה בתלילות. דוגמה 2 במערך.' },
+  { key:'x2y', lbl:'x²y + y³', expr:'f(x, y) = x²y + y³', xl:'x', yl:'y', xr:[-2,2], yr:[-2,2],
+    f:(x,y)=>x*x*y+y**3, fx:(x,y)=>2*x*y, fy:(x,y)=>x*x+3*y*y, unit:'', xunit:'', yunit:'',
+    note:'הפונקציה ששוחזרה בדוגמה 12 במערך. שימו לב שהשיפוע לאורך <span class="m">x</span> מתאפס על הצירים — שם <span class="m">2xy = 0</span>.' },
+  { key:'exy', lbl:'x³y² − 2xy + eˣʸ', expr:'f(x, y) = x³y² − 2xy + e^{xy}', xl:'x', yl:'y', xr:[-1.5,1.5], yr:[-1.5,1.5],
+    f:(x,y)=>x**3*y*y-2*x*y+Math.exp(x*y), fx:(x,y)=>3*x*x*y*y-2*y+y*Math.exp(x*y), fy:(x,y)=>2*x**3*y-2*x+x*Math.exp(x*y), unit:'', xunit:'', yunit:'',
+    note:'דוגמה 3 במערך — האיבר המעריכי דורש את כלל השרשרת: לפי <span class="m">x</span> הנגזרת של <span class="m">e^{xy}</span> היא <span class="m">y·e^{xy}</span>.' },
+];
+const funByKey=k=>FUNS.find(f=>f.key===k);
+function sliderVal(id,r){ return r[0]+(+$(id).value)/1000*(r[1]-r[0]); }
+
+/* ============================================================
+   א — המשטח
+   ============================================================ */
+const SA={fn:'V'};
+function drawA(){
+  const D=funByKey(SA.fn); const g=setupCanvas($('cv-a')); if(!g) return; const {ctx,w,h}=g;
+  const x=sliderVal('a-x',D.xr), y=sliderVal('a-y',D.yr);
+  $('a-expr').textContent=D.expr; $('a-xl').textContent=D.xl; $('a-yl').textContent=D.yl;
+  $('a-xv').textContent=fmt(x,2); $('a-yv').textContent=fmt(y,2);
+  const f=D.f(x,y), fx=D.fx(x,y), fy=D.fy(x,y);
+  $('a-f').textContent=fmt(f,3)+(D.unit?' '+D.unit:''); $('a-fx').textContent=fmt(fx,4); $('a-fy').textContent=fmt(fy,4);
+  $('a-ft').textContent='הערך בנקודה'; $('a-fxt').textContent='השיפוע לאורך '+D.xl.split(' ')[0]+' (השני קפוא)'; $('a-fyt').textContent='השיפוע לאורך '+D.yl.split(' ')[0]+' (הראשון קפוא)';
+  $('a-note').innerHTML=D.note;
+  /* פריסה: מפה משמאל (בקואורדינטות LTR), שני חיתוכים מימין זה מעל זה */
+  const narrow = w<620;
+  const mapW=narrow? w : Math.min(w*0.56, h*1.05);
+  const P=narrow? plot(48, w-14, h*0.55-42, 26, D.xr, D.yr) : plot(48, mapW-10, h-42, 26, D.xr, D.yr);
+  const [lo,hi]=minmax(D.f,D.xr,D.yr);
+  colorMap(ctx,P,D.xr,D.yr,D.f,v=>heightColor((v-lo)/(hi-lo)));
+  const levels=[]; for(let k=1;k<12;k++) levels.push(lo+(hi-lo)*k/12);
+  contours(ctx,P,D.xr,D.yr,D.f,levels,'rgba(31,78,121,0.55)');
+  frame(ctx,P,D.xr,D.yr,{xlab:D.xl, ylab:D.yl, title:'מפת הגובה', xfmt:t=>String(+t.toFixed(2)), yfmt:t=>String(+t.toFixed(2))});
+  /* קווי החיתוך */
+  ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=1.8;
+  ctx.strokeStyle=css('--primary'); ctx.beginPath(); ctx.moveTo(P.x0,P.Y(y)); ctx.lineTo(P.x1,P.Y(y)); ctx.stroke();
+  ctx.strokeStyle=css('--accent'); ctx.beginPath(); ctx.moveTo(P.X(x),P.y0); ctx.lineTo(P.X(x),P.y1); ctx.stroke();
+  ctx.restore();
+  dot(ctx,P.X(x),P.Y(y),6,css('--warn'));
+  SA.P=P;
+  /* חיתוך 1: f מול x ב-y קבוע */
+  const sx0=mapW+50, sx1=w-14, top=26, mid=h/2, bot=h-42;
+  const sec=(P2, xr, fn, dfn, at, color, lab, title)=>{
+    let yr=minmax((t)=>fn(t),[xr[0],xr[1]],[0,0],60); if(yr[1]-yr[0]<1e-9) yr=[yr[0]-1,yr[1]+1];
+    const pad=(yr[1]-yr[0])*0.12; yr=[yr[0]-pad,yr[1]+pad];
+    const Q=plot(P2[0],P2[1],P2[2],P2[3],xr,yr);
+    frame(ctx,Q,xr,yr,{xlab:lab, title:title, xfmt:t=>String(+t.toFixed(2)), yfmt:t=>String(+t.toPrecision(3))});
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2.6; ctx.beginPath(); let st=false;
+    for(let i=0;i<=200;i++){ const t=xr[0]+i/200*(xr[1]-xr[0]); const v=fn(t); if(!Number.isFinite(v)){st=false;continue;} const px=Q.X(t),py=Q.Y(v); if(!st){ctx.moveTo(px,py);st=true;} else ctx.lineTo(px,py); }
+    ctx.stroke();
+    /* משיק */
+    const v0=fn(at), s=dfn(at); const dx=(xr[1]-xr[0])*0.22;
+    ctx.strokeStyle=css('--warn'); ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(Q.X(at-dx),Q.Y(v0-s*dx)); ctx.lineTo(Q.X(at+dx),Q.Y(v0+s*dx)); ctx.stroke();
+    ctx.restore(); dot(ctx,Q.X(at),Q.Y(v0),5,css('--warn'));
+  };
+  if(narrow){
+    const t2=h*0.55+8, half=(w-24)/2;
+    sec([48,48+half-30,bot,t2+26], D.xr, t=>D.f(t,y), t=>D.fx(t,y), x, css('--primary'), D.xl, 'השני קפוא');
+    sec([48+half+8,w-14,bot,t2+26], D.yr, t=>D.f(x,t), t=>D.fy(x,t), y, css('--accent'), D.yl, 'הראשון קפוא');
+  } else {
+    sec([sx0,sx1,mid-28,top], D.xr, t=>D.f(t,y), t=>D.fx(t,y), x, css('--primary'), D.xl, 'חיתוך: השני קפוא');
+    sec([sx0,sx1,bot,mid+34], D.yr, t=>D.f(x,t), t=>D.fy(x,t), y, css('--accent'), D.yl, 'חיתוך: הראשון קפוא');
+  }
+}
+dragOn($('cv-a'),(px,py)=>{ const P=SA.P, D=funByKey(SA.fn); if(!P) return; if(px<P.x0-10||px>P.x1+10) return;
+  const x=Math.max(D.xr[0],Math.min(D.xr[1],P.invX(px))), y=Math.max(D.yr[0],Math.min(D.yr[1],P.invY(py)));
+  $('a-x').value=Math.round((x-D.xr[0])/(D.xr[1]-D.xr[0])*1000); $('a-y').value=Math.round((y-D.yr[0])/(D.yr[1]-D.yr[0])*1000); drawA(); });
+
+/* ============================================================
+   ב — הדיפרנציאל
+   ============================================================ */
+const SB={fn:'x2y', anim:null};
+function drawB(){
+  const D=funByKey(SB.fn); const g=setupCanvas($('cv-b')); if(!g) return; const {ctx,w,h}=g;
+  const x=sliderVal('b-x',D.xr), y=sliderVal('b-y',D.yr); const hf=(+$('b-h').value)/100;
+  const dx=(D.xr[1]-D.xr[0])*hf*0.5, dy=(D.yr[1]-D.yr[0])*hf*0.5;
+  $('b-xl').textContent=D.xl; $('b-yl').textContent=D.yl; $('b-xv').textContent=fmt(x,2); $('b-yv').textContent=fmt(y,2); $('b-hv').textContent=fmt(hf*100,0)+'%';
+  const t1=D.fx(x,y)*dx, t2=D.fy(x,y)*dy, df=t1+t2, ex=D.f(x+dx,y+dy)-D.f(x,y), res=ex-df;
+  $('b-t1').textContent=fmtS(t1,4); $('b-t2').textContent=fmtS(t2,4); $('b-df').textContent=fmtS(df,4); $('b-ex').textContent=fmtS(ex,4);
+  $('b-res').textContent=fmtS(res,4)+(Math.abs(df)>1e-9?'  ('+fmt(Math.abs(res/df)*100,1)+'%)':'');
+  $('b-note').innerHTML=`הצעד הראשון (כחול) הולך רק ב-<span class="m">${D.xl.split(' ')[0]}</span>; הצעד השני (טורקיז) רק ב-<span class="m">${D.yl.split(' ')[0]}</span>. הסכום הוא <span class="m">df</span>. השארית האדומה היא בדיוק האיבר <span class="m">dx·dy</span> שזרקנו בהוכחה — <b>הקטינו את הצעדים פי 2 ותראו שהיא קטנה פי 4</b>, בעוד df קטן רק פי 2.`;
+  const mapW=Math.min(w*0.58, h*1.1);
+  const P=plot(48, mapW-10, h-42, 26, D.xr, D.yr);
+  const [lo,hi]=minmax(D.f,D.xr,D.yr);
+  colorMap(ctx,P,D.xr,D.yr,D.f,v=>heightColor((v-lo)/(hi-lo)));
+  const levels=[]; for(let k=1;k<12;k++) levels.push(lo+(hi-lo)*k/12);
+  contours(ctx,P,D.xr,D.yr,D.f,levels,'rgba(31,78,121,0.5)');
+  frame(ctx,P,D.xr,D.yr,{xlab:D.xl, ylab:D.yl, title:'שני צעדים על המפה', xfmt:t=>String(+t.toFixed(2)), yfmt:t=>String(+t.toFixed(2))});
+  const cx=Math.min(x+dx,D.xr[1]), cy=Math.min(y+dy,D.yr[1]);
+  arrow(ctx,P.X(x),P.Y(y),P.X(cx),P.Y(y),css('--primary'),3);
+  arrow(ctx,P.X(cx),P.Y(y),P.X(cx),P.Y(cy),css('--accent'),3);
+  ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle=css('--muted'); ctx.beginPath(); ctx.moveTo(P.X(x),P.Y(y)); ctx.lineTo(P.X(cx),P.Y(cy)); ctx.stroke(); ctx.restore();
+  dot(ctx,P.X(x),P.Y(y),5,css('--warn')); dot(ctx,P.X(cx),P.Y(cy),5,css('--gold'));
+  SB.P=P;
+  /* עמודות */
+  const bx0=mapW+56, bx1=w-14, top=40, bot=h-42;
+  const vals=[{v:t1,c:css('--primary'),l:'1'},{v:t2,c:css('--accent'),l:'2'},{v:df,c:css('--gold'),l:'df'},{v:ex,c:css('--sky'),l:'Δf'},{v:res,c:css('--warn'),l:'r'}];
+  const mx=Math.max(1e-9,...vals.map(o=>Math.abs(o.v)));
+  const zero=(top+bot)/2, sc=(bot-top)/2*0.9/mx, bw=(bx1-bx0)/vals.length;
+  ctx.save(); ctx.strokeStyle=css('--muted'); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(bx0,zero); ctx.lineTo(bx1,zero); ctx.stroke();
+  ctx.font='800 12px Heebo, system-ui, sans-serif';
+  vals.forEach((o,i)=>{ const xx=bx0+i*bw+bw*0.2; const hh=o.v*sc; ctx.fillStyle=o.c; ctx.fillRect(xx, hh>=0?zero-hh:zero, bw*0.6, Math.abs(hh)); ctx.fillStyle=css('--ink'); ltrT(ctx,o.l,xx+bw*0.3,bot+11); });
+  ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif'; heT(ctx,'התרומות',(bx0+bx1)/2,top-16);
+  ctx.restore();
+}
+dragOn($('cv-b'),(px,py)=>{ const P=SB.P, D=funByKey(SB.fn); if(!P) return; if(px<P.x0-10||px>P.x1+10) return;
+  const x=Math.max(D.xr[0],Math.min(D.xr[1],P.invX(px))), y=Math.max(D.yr[0],Math.min(D.yr[1],P.invY(py)));
+  $('b-x').value=Math.round((x-D.xr[0])/(D.xr[1]-D.xr[0])*1000); $('b-y').value=Math.round((y-D.yr[0])/(D.yr[1]-D.yr[0])*1000); drawB(); });
+function bAnim(){ if(SB.anim){ cancelAnimationFrame(SB.anim); SB.anim=null; $('b-go').textContent='▶ הקטינו את הצעדים'; return; }
+  $('b-go').textContent='⏸ עצרו'; let v=+$('b-h').value;
+  const step=()=>{ v-=0.25; if(v<=1){ v=1; $('b-h').value=1; drawB(); SB.anim=null; $('b-go').textContent='▶ הקטינו את הצעדים'; return; } $('b-h').value=v; drawB(); SB.anim=requestAnimationFrame(step); };
+  SB.anim=requestAnimationFrame(step); }
+
+/* ============================================================
+   ג — אוילר: דיפרנציאלים M dx + N dy (נגזרות מעורבות נומריות)
+   ============================================================ */
+const CV_MOLAR=1.5*R_GAS;
+const DIFFS = [
+  { key:'dV', lbl:'dV גז אידיאלי', expr:'dV = (nR/p) dT − (nRT/p²) dp', xl:'T [K]', yl:'p [bar]', xr:[200,600], yr:[0.5,5],
+    M:(T,p)=>R_GAS/(p*1e5)*1000, N:(T,p)=>-R_GAS*T/(p*p*1e5)*1000, exact:true, f:(T,p)=>R_GAS*T/(p*1e5)*1000, unit:'L',
+    note:'דוגמה 6 במערך: <span class="m">∂M/∂p = −nR/p²</span> וגם <span class="m">∂N/∂T = −nR/p²</span>. המפה אפורה בכל מקום — <b>שלם</b>. הנפח הוא פונקציית מצב.' },
+  { key:'dW', lbl:'đW גז אידיאלי', expr:'đW = −nR dT + (nRT/p) dp', xl:'T [K]', yl:'p [bar]', xr:[200,600], yr:[0.5,5],
+    M:(T,p)=>-R_GAS, N:(T,p)=>R_GAS*T/(p*1e5)*1e5, exact:false, unit:'J',
+    note:'דוגמה 9 במערך: <span class="m">∂M/∂p = 0</span> אבל <span class="m">∂N/∂T = nR/p ≠ 0</span>. המפה צבעונית — <b>לא שלם</b>. אין פונקציה <span class="m">W(T,p)</span>; העבודה תלויה במסלול. (כאן <span class="m">p</span> בפסקל בתוך <span class="m">N</span>, ולכן <span class="m">N = nRT/p</span> במטר מעוקב.)' },
+  { key:'p1', lbl:'2xy dx + (x²+3y²) dy', expr:'2xy dx + (x² + 3y²) dy', xl:'x', yl:'y', xr:[-2,2], yr:[-2,2],
+    M:(x,y)=>2*x*y, N:(x,y)=>x*x+3*y*y, exact:true, f:(x,y)=>x*x*y+y**3, unit:'',
+    note:'<span class="m">∂M/∂y = 2x = ∂N/∂x</span>. שלם, והפונקציה היא <span class="m">x²y + y³</span> (דוגמה 12).' },
+  { key:'p2', lbl:'y dx − x dy', expr:'y dx − x dy', xl:'x', yl:'y', xr:[-2,2], yr:[-2,2],
+    M:(x,y)=>y, N:(x,y)=>-x, exact:false, unit:'',
+    note:'דוגמה 8 במערך: <span class="m">∂M/∂y = 1</span>, <span class="m">∂N/∂x = −1</span>. ההפרש 2 בכל מקום — המפה אדומה אחידה. <b>אין</b> פונקציה כזאת.' },
+  { key:'dQ', lbl:'đQ = C_V dT + (RT/V) dV', expr:'đQ_rev = C_V dT + (RT/V) dV', xl:'T [K]', yl:'V [L]', xr:[200,600], yr:[5,50],
+    M:(T,V)=>CV_MOLAR, N:(T,V)=>R_GAS*T/V, exact:false, unit:'J',
+    note:'תרגיל 3 (האתגר): <span class="m">∂M/∂V = 0</span>, <span class="m">∂N/∂T = R/V ≠ 0</span>. החום <b>אינו</b> פונקציית מצב. עכשיו עברו לדיפרנציאל הבא — אותו ביטוי חלקי <span class="m">T</span>.' },
+  { key:'dS', lbl:'dS = đQ / T', expr:'dS = (C_V/T) dT + (R/V) dV', xl:'T [K]', yl:'V [L]', xr:[200,600], yr:[5,50],
+    M:(T,V)=>CV_MOLAR/T, N:(T,V)=>R_GAS/V, exact:true, f:(T,V)=>CV_MOLAR*Math.log(T)+R_GAS*Math.log(V), unit:'J/K',
+    note:'חלוקה ב-<span class="m">T</span> הפכה את đQ לשלם: שתי הנגזרות המעורבות אפס. זו <b>האנטרופיה</b>, וזו הסיבה המתמטית הראשונה שלמה מחלקים ב-T.' },
+];
+const diffByKey=k=>DIFFS.find(d=>d.key===k);
+function mixed(D,x,y){ const hx=(D.xr[1]-D.xr[0])*1e-4, hy=(D.yr[1]-D.yr[0])*1e-4;
+  const My=(D.M(x,y+hy)-D.M(x,y-hy))/(2*hy), Nx=(D.N(x+hx,y)-D.N(x-hx,y))/(2*hx); return {My,Nx}; }
+const SC={fn:'dV'};
+function drawC(){
+  const D=diffByKey(SC.fn); const g=setupCanvas($('cv-c')); if(!g) return; const {ctx,w,h}=g;
+  $('c-expr').textContent=D.expr; $('c-xl').textContent=D.xl; $('c-yl').textContent=D.yl;
+  const x=sliderVal('c-x',D.xr), y=sliderVal('c-y',D.yr); $('c-xv').textContent=fmt(x,2); $('c-yv').textContent=fmt(y,2);
+  const {My,Nx}=mixed(D,x,y);
+  $('c-M').textContent=fmtS(D.M(x,y),4); $('c-N').textContent=fmtS(D.N(x,y),4); $('c-My').textContent=fmtS(My,5); $('c-Nx').textContent=fmtS(Nx,5);
+  const ex=D.exact; $('c-verdict').className='verdict '+(ex?'ok':'bad'); $('c-verdict').textContent=ex?'הנגזרות המעורבות שוות — דיפרנציאל שלם, קיימת פונקציית מצב':'הנגזרות המעורבות שונות — דיפרנציאל לא שלם, אין פונקציה';
+  $('c-note').innerHTML=D.note;
+  const P=plot(52, w-16, h-42, 26, D.xr, D.yr);
+  /* סקאלת צבע: לפי הערך המרבי של ההפרש על התחום */
+  let mx=0; for(let i=0;i<=20;i++) for(let j=0;j<=20;j++){ const m=mixed(D,D.xr[0]+i/20*(D.xr[1]-D.xr[0]),D.yr[0]+j/20*(D.yr[1]-D.yr[0])); mx=Math.max(mx,Math.abs(m.My-m.Nx)); }
+  const scaleRef=Math.max(mx, 1e-9);
+  colorMap(ctx,P,D.xr,D.yr,(a,b)=>{ const m=mixed(D,a,b); return m.My-m.Nx; }, v=>divColor(scaleRef<1e-7?0:v/scaleRef), 48, 36);
+  /* שדה חצים (M,N) מנורמל */
+  let vm=0; const nx=12, ny=9, arr=[];
+  for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){ const a=D.xr[0]+(i+0.5)/nx*(D.xr[1]-D.xr[0]), b=D.yr[0]+(j+0.5)/ny*(D.yr[1]-D.yr[0]);
+    const u=D.M(a,b)*(D.xr[1]-D.xr[0]), v=D.N(a,b)*(D.yr[1]-D.yr[0]); const L=Math.hypot(u,v); vm=Math.max(vm,L); arr.push([a,b,u,v,L]); }
+  for(const [a,b,u,v,L] of arr){ if(L<1e-12) continue; const s=14*(0.35+0.65*L/vm); const px=P.X(a), py=P.Y(b); const ang=Math.atan2(-v,u);
+    arrow(ctx,px-s*Math.cos(ang),py-s*Math.sin(ang),px+s*Math.cos(ang),py+s*Math.sin(ang),'rgba(26,26,26,0.55)',1.4); }
+  frame(ctx,P,D.xr,D.yr,{xlab:D.xl, ylab:D.yl, title:'∂M/∂y − ∂N/∂x', xfmt:t=>String(+t.toFixed(2)), yfmt:t=>String(+t.toFixed(2))});
+  dot(ctx,P.X(x),P.Y(y),6,css('--gold'));
+  SC.P=P;
+}
+dragOn($('cv-c'),(px,py)=>{ const P=SC.P, D=diffByKey(SC.fn); if(!P) return;
+  const x=Math.max(D.xr[0],Math.min(D.xr[1],P.invX(px))), y=Math.max(D.yr[0],Math.min(D.yr[1],P.invY(py)));
+  $('c-x').value=Math.round((x-D.xr[0])/(D.xr[1]-D.xr[0])*1000); $('c-y').value=Math.round((y-D.yr[0])/(D.yr[1]-D.yr[0])*1000); drawC(); });
+
+/* ============================================================
+   ד — מסלולים במישור T–p (מול אחד)
+   ============================================================ */
+const SD={path:'A', anim:null, t:1};
+function gasPath(kind,T1,p1,T2,p2,bend){
+  /* מחזיר רשימת נקודות (T, p[Pa]) לאורך המסלול */
+  const pts=[]; const n=300;
+  const seg=(Ta,pa,Tb,pb)=>{ for(let i=0;i<=n;i++){ const s=i/n; pts.push([Ta+(Tb-Ta)*s, pa+(pb-pa)*s]); } };
+  if(kind==='A'){ seg(T1,p1,T1,p2); seg(T1,p2,T2,p2); }
+  else if(kind==='B'){ seg(T1,p1,T2,p1); seg(T2,p1,T2,p2); }
+  else if(kind==='C'){ const pm=p1*T2/T1; seg(T1,p1,T2,pm); seg(T2,pm,T2,p2); }
+  else { /* בזייה ריבועית עם נקודת בקרה מוזזת לפי bend */
+    const mT=(T1+T2)/2, mp=(p1+p2)/2; const cT=mT+(T2-T1)*0.0, cp=mp+bend*(p2-p1)*1.2;
+    const cT2=mT-bend*(T2-T1)*1.2;
+    for(let i=0;i<=2*n;i++){ const s=i/(2*n); const T=(1-s)**2*T1+2*(1-s)*s*cT2+s*s*T2; const p=(1-s)**2*p1+2*(1-s)*s*cp+s*s*p2; pts.push([T,p]); } }
+  return pts;
+}
+function integrate(pts,upto){
+  /* ∫dV ו-∫đW לאורך הנקודות, בכלל הטרפז על המשתנים */
+  let dV=0, W=0; const m=upto===undefined?pts.length:Math.max(1,Math.min(pts.length,Math.round(upto)));
+  for(let i=1;i<m;i++){ const [Ta,pa]=pts[i-1], [Tb,pb]=pts[i]; const T=(Ta+Tb)/2, p=(pa+pb)/2; const dT=Tb-Ta, dp=pb-pa;
+    dV += R_GAS/p*dT - R_GAS*T/(p*p)*dp; W += -R_GAS*dT + R_GAS*T/p*dp; }
+  return {dV,W,m};
+}
+function drawD(){
+  const g=setupCanvas($('cv-d')); if(!g) return; const {ctx,w,h}=g;
+  const T1=+$('d-T1').value, p1=(+$('d-p1').value)/100, T2=+$('d-T2').value, p2=(+$('d-p2').value)/100, bend=(+$('d-bend').value)/100;
+  $('d-T1v').textContent=String(T1); $('d-p1v').textContent=fmt(p1,2); $('d-T2v').textContent=String(T2); $('d-p2v').textContent=fmt(p2,2); $('d-bendv').textContent=fmt(bend,2);
+  $('d-bendc').style.display = SD.path==='S'?'block':'none';
+  const P1=p1*1e5, P2=p2*1e5;
+  const paths={A:gasPath('A',T1,P1,T2,P2), B:gasPath('B',T1,P1,T2,P2), C:gasPath('C',T1,P1,T2,P2), S:gasPath('S',T1,P1,T2,P2,bend)};
+  const cur=paths[SD.path]; const full=integrate(cur); const part=integrate(cur, cur.length*SD.t);
+  const V1=R_GAS*T1/P1*1000, V2=R_GAS*T2/P2*1000;
+  const WA=integrate(paths.A).W, WB=integrate(paths.B).W;
+  $('d-dV').textContent=fmtS(part.dV*1000,3); $('d-V21').textContent=fmtS(V2-V1,3); $('d-W').textContent=fmtS(part.W,1);
+  $('d-WA').textContent=fmtS(WA,1); $('d-WB').textContent=fmtS(WB,1); $('d-cyc').textContent=fmtS(WA-WB,1);
+  const names={A:'A — איזותרמי ואז איזוברי',B:'B — איזוברי ואז איזותרמי',C:'C — איזוכורי ואז איזותרמי',S:'עקום — מסלול חופשי'};
+  $('d-note').innerHTML=`מסלול <b>${names[SD.path]}</b>. <span class="m">∫dV</span> יוצא תמיד <span class="m">V₂ − V₁</span> — לא משנה איזה מסלול בוחרים. <span class="m">∫đW</span> משתנה ממסלול למסלול. הפרש העבודות בין A ל-B הוא בדיוק <span class="m">nR(T₂−T₁)·ln(p₂/p₁)</span> = <span class="m">${fmtS(R_GAS*(T2-T1)*Math.log(p2/p1),1)} J</span>. ${SD.path==='S'?'שנו את העקמומיות: <b>העבודה זזה, הנפח לא.</b>':''}`;
+  /* שני פאנלים: T–p משמאל, p–V מימין */
+  const half=(w-20)/2;
+  const Tr=[Math.min(T1,T2)-40, Math.max(T1,T2)+40];
+  const allP=[p1,p2,SD.path==='C'?p1*T2/T1:p1]; if(SD.path==='S'){ for(const [T,p] of paths.S) allP.push(p/1e5); }
+  const pr=[Math.max(0.05,Math.min(...allP)-0.4), Math.max(...allP)+0.4];
+  const PL=plot(50, half-10, h-42, 26, Tr, pr);
+  frame(ctx,PL,Tr,pr,{xlab:'T [K]', ylab:'p [bar]', title:'מישור T–p', xfmt:t=>String(Math.round(t)), yfmt:t=>String(+t.toFixed(1))});
+  const Vs=[]; for(const k of ['A','B','C','S']) for(const [T,p] of paths[k]) Vs.push(R_GAS*T/p*1000);
+  const Vr=[Math.max(0,Math.min(...Vs)*0.85), Math.max(...Vs)*1.08];
+  const PR=plot(half+50, w-14, h-42, 26, Vr, pr);
+  frame(ctx,PR,Vr,pr,{xlab:'V [L]', ylab:'p [bar]', title:'מישור p–V', xfmt:t=>String(+t.toFixed(0)), yfmt:t=>String(+t.toFixed(1))});
+  const colors={A:css('--primary'),B:css('--accent'),C:css('--goldtx'),S:css('--warn')};
+  /* המסלולים האחרים חיוורים */
+  for(const k of ['A','B','C','S']){ if(k===SD.path) continue; if(k==='S' && SD.path!=='S') continue;
+    ctx.save(); ctx.globalAlpha=0.28; ctx.strokeStyle=colors[k]; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    for(const [P,mapx] of [[PL,(T,p)=>[PL.X(T),PL.Y(p/1e5)]],[PR,(T,p)=>[PR.X(R_GAS*T/p*1000),PR.Y(p/1e5)]]]){ ctx.beginPath(); paths[k].forEach(([T,p],i)=>{ const [a,b]=mapx(T,p); i?ctx.lineTo(a,b):ctx.moveTo(a,b); }); ctx.stroke(); }
+    ctx.restore(); }
+  /* שטח מתחת למסלול הנוכחי ב-p–V (עד t) */
+  ctx.save(); ctx.fillStyle=colors[SD.path]; ctx.globalAlpha=0.16; ctx.beginPath();
+  const m=part.m; ctx.moveTo(PR.X(R_GAS*cur[0][0]/cur[0][1]*1000), PR.y0);
+  for(let i=0;i<m;i++){ const [T,p]=cur[i]; ctx.lineTo(PR.X(R_GAS*T/p*1000), PR.Y(p/1e5)); }
+  ctx.lineTo(PR.X(R_GAS*cur[m-1][0]/cur[m-1][1]*1000), PR.y0); ctx.closePath(); ctx.fill(); ctx.restore();
+  /* המסלול הנוכחי */
+  ctx.save(); ctx.strokeStyle=colors[SD.path]; ctx.lineWidth=3.2;
+  ctx.beginPath(); for(let i=0;i<m;i++){ const [T,p]=cur[i]; const a=PL.X(T), b=PL.Y(p/1e5); i?ctx.lineTo(a,b):ctx.moveTo(a,b); } ctx.stroke();
+  ctx.beginPath(); for(let i=0;i<m;i++){ const [T,p]=cur[i]; const a=PR.X(R_GAS*T/p*1000), b=PR.Y(p/1e5); i?ctx.lineTo(a,b):ctx.moveTo(a,b); } ctx.stroke();
+  ctx.restore();
+  dot(ctx,PL.X(T1),PL.Y(p1),6,css('--ink')); dot(ctx,PL.X(T2),PL.Y(p2),6,css('--ink'));
+  dot(ctx,PR.X(V1),PR.Y(p1),6,css('--ink')); dot(ctx,PR.X(V2),PR.Y(p2),6,css('--ink'));
+  ctx.fillStyle=css('--ink'); ctx.font='800 12px Heebo, system-ui, sans-serif';
+  ltrT(ctx,'1',PL.X(T1)-10,PL.Y(p1)-10); ltrT(ctx,'2',PL.X(T2)+10,PL.Y(p2)-10); ltrT(ctx,'1',PR.X(V1)+10,PR.Y(p1)-10); ltrT(ctx,'2',PR.X(V2)-10,PR.Y(p2)-10);
+  const [Tc,pc]=cur[m-1]; dot(ctx,PL.X(Tc),PL.Y(pc/1e5),5,css('--gold')); dot(ctx,PR.X(R_GAS*Tc/pc*1000),PR.Y(pc/1e5),5,css('--gold'));
+}
+function dAnim(){ if(SD.anim){ cancelAnimationFrame(SD.anim); SD.anim=null; SD.t=1; drawD(); $('d-go').textContent='▶ הריצו את המסלול'; return; }
+  SD.t=0.003; $('d-go').textContent='⏸ עצרו';
+  const step=()=>{ SD.t+=0.008; if(SD.t>=1){ SD.t=1; drawD(); SD.anim=null; $('d-go').textContent='▶ הריצו את המסלול'; return; } drawD(); SD.anim=requestAnimationFrame(step); };
+  SD.anim=requestAnimationFrame(step); }
+
+/* ============================================================
+   ה — שחזור: שני סדרי אינטגרציה מנקודת ייחוס
+   ============================================================ */
+const REC = [
+  diffByKey('p1'), diffByKey('dS'),
+  { key:'q', lbl:'(1/y) dx − (x/y²) dy', expr:'(1/y) dx − (x/y²) dy', xl:'x', yl:'y', xr:[-2,2], yr:[0.5,3], M:(x,y)=>1/y, N:(x,y)=>-x/(y*y), exact:true, unit:'', note:'תרגיל 5(ב): שלם, והפונקציה היא <span class="m">x/y</span>. שני השחזורים מתלכדים.' },
+  diffByKey('p2'),
+  { key:'y2x', lbl:'y dx + 2x dy', expr:'y dx + 2x dy', xl:'x', yl:'y', xr:[-2,2], yr:[-2,2], M:(x,y)=>y, N:(x,y)=>2*x, exact:false, unit:'', note:'תרגיל 5(ג): <span class="m">1 ≠ 2</span>. השחזור ״קודם x״ נותן <span class="m">2xy</span>, השחזור ״קודם y״ נותן <span class="m">xy</span> — המשטח נקרע, ההפרש <span class="m">xy</span> גדל ככל שמתרחקים.' },
+  diffByKey('dW'),
+];
+const SE={fn:'p1'};
+function recon(D,x,y,order){
+  /* אינטגרל קווי מנקודת ייחוס (x0,y0) אל (x,y) בשני קטעים ישרים */
+  const x0=D.xr[0]+(D.xr[1]-D.xr[0])*0.25, y0=D.yr[0]+(D.yr[1]-D.yr[0])*0.25;
+  if(order===1) return simpson(t=>D.M(t,y0),x0,x,200)+simpson(t=>D.N(x,t),y0,y,200);
+  return simpson(t=>D.N(x0,t),y0,y,200)+simpson(t=>D.M(t,y),x0,x,200);
+}
+function drawE(){
+  const D=REC.find(d=>d.key===SE.fn); const g=setupCanvas($('cv-e')); if(!g) return; const {ctx,w,h}=g;
+  $('e-expr').textContent=D.expr; $('e-xl').textContent=D.xl; $('e-yl').textContent=D.yl;
+  const x=sliderVal('e-x',D.xr), y=sliderVal('e-y',D.yr); $('e-xv').textContent=fmt(x,2); $('e-yv').textContent=fmt(y,2);
+  const f1=recon(D,x,y,1), f2=recon(D,x,y,2);
+  $('e-f1').textContent=fmtS(f1,4); $('e-f2').textContent=fmtS(f2,4); $('e-diff').textContent=fmtS(f1-f2,4);
+  $('e-verdict').className='verdict '+(D.exact?'ok':'bad'); $('e-verdict').textContent=D.exact?'שני השחזורים מתלכדים — המשטח נסגר, קיימת f':'השחזורים שונים — המשטח נקרע, אין f';
+  $('e-note').innerHTML=(D.note||'')+' <br>נקודת הייחוס (הריבוע הקטן) היא המקום שבו קבענו <span class="m">f = 0</span> — זה קבוע האינטגרציה <span class="m">C</span>.';
+  const narrow=w<620; const third=narrow? (w-24)/2 : (w-24)/3;
+  const F1=(a,b)=>recon(D,a,b,1), F2=(a,b)=>recon(D,a,b,2);
+  const n=26; const grid1=[],grid2=[]; let lo=Infinity,hi=-Infinity,dm=0;
+  for(let i=0;i<=n;i++){ grid1.push([]); grid2.push([]); for(let j=0;j<=n;j++){ const a=D.xr[0]+i/n*(D.xr[1]-D.xr[0]), b=D.yr[0]+j/n*(D.yr[1]-D.yr[0]); const v1=F1(a,b), v2=F2(a,b); grid1[i].push(v1); grid2[i].push(v2); if(Number.isFinite(v1)&&Number.isFinite(v2)){ lo=Math.min(lo,v1,v2); hi=Math.max(hi,v1,v2); dm=Math.max(dm,Math.abs(v1-v2)); } } }
+  if(!(hi>lo)) hi=lo+1;
+  const look=(grid,a,b)=>{ const i=Math.max(0,Math.min(n,Math.round((a-D.xr[0])/(D.xr[1]-D.xr[0])*n))), j=Math.max(0,Math.min(n,Math.round((b-D.yr[0])/(D.yr[1]-D.yr[0])*n))); return grid[i][j]; };
+  const panels=[{t:narrow?'קודם x':'שחזור 1: קודם x ואז y', fn:(a,b)=>look(grid1,a,b), sc:v=>heightColor((v-lo)/(hi-lo)), col:css('--primary')},
+                {t:narrow?'קודם y':'שחזור 2: קודם y ואז x', fn:(a,b)=>look(grid2,a,b), sc:v=>heightColor((v-lo)/(hi-lo)), col:css('--accent')},
+                {t:'ההפרש', fn:(a,b)=>look(grid1,a,b)-look(grid2,a,b), sc:v=>divColor(dm<1e-6?0:v/dm), col:css('--warn')}];
+  const levels=[]; for(let k=1;k<10;k++) levels.push(lo+(hi-lo)*k/10);
+  panels.forEach((pn,idx)=>{
+    let P;
+    if(narrow){ const rowH=(h-20)/2; const col=idx%2, row=idx<2?0:1; P=plot(48+col*(third+12), 48+col*(third+12)+third-38, row*rowH+rowH-42, row*rowH+26, D.xr, D.yr); }
+    else P=plot(48+idx*(third+12), 48+idx*(third+12)+third-30, h-42, 26, D.xr, D.yr);
+    colorMap(ctx,P,D.xr,D.yr,pn.fn,pn.sc,n,n);
+    if(idx<2) contours(ctx,P,D.xr,D.yr,pn.fn,levels,'rgba(31,78,121,0.5)',n,n);
+    frame(ctx,P,D.xr,D.yr,{xlab:D.xl, ylab:idx===0?D.yl:'', title:pn.t, xfmt:t=>String(+t.toFixed(1)), yfmt:t=>String(+t.toFixed(1))});
+    const x0=D.xr[0]+(D.xr[1]-D.xr[0])*0.25, y0=D.yr[0]+(D.yr[1]-D.yr[0])*0.25;
+    ctx.save(); ctx.strokeStyle=pn.col; ctx.lineWidth=2.2; ctx.setLineDash([4,3]); ctx.beginPath();
+    if(idx===0){ ctx.moveTo(P.X(x0),P.Y(y0)); ctx.lineTo(P.X(x),P.Y(y0)); ctx.lineTo(P.X(x),P.Y(y)); }
+    else if(idx===1){ ctx.moveTo(P.X(x0),P.Y(y0)); ctx.lineTo(P.X(x0),P.Y(y)); ctx.lineTo(P.X(x),P.Y(y)); }
+    ctx.stroke(); ctx.restore();
+    ctx.fillStyle=css('--ink'); ctx.fillRect(P.X(x0)-4,P.Y(y0)-4,8,8);
+    dot(ctx,P.X(x),P.Y(y),5,css('--gold'));
+  });
+}
+
+/* ============================================================
+   המשחק — זריעה לפי מספר תלמיד
+   ============================================================ */
+function seed(N){
+  N=Math.max(1,Math.min(50,Math.round(N)));
+  const al=1+(N%5), be=2+(N%3), ga=1+(N%4), de=1+(N%2);
+  const x1=1+(N%4)*0.5, y1=1+(N%3)*0.5;
+  const T1=280+2*N, p1=1.0, T2=T1+100+N, p2=+(1.5+0.05*N).toFixed(2);
+  return {N,al,be,ga,de,x1,y1,T1,p1,T2,p2};
+}
+const SG={N:null, st:1, field:1};
+function gameFields(s){
+  return {
+    1:{ name:'שדה 1', expr:`(${2*s.al}xy + ${s.be}y²) dx + (${s.al}x² + ${2*s.be}xy) dy`, M:(x,y)=>2*s.al*x*y+s.be*y*y, N:(x,y)=>s.al*x*x+2*s.be*x*y },
+    2:{ name:'שדה 2', expr:`${s.ga}y dx + ${s.ga+s.de}x dy`, M:(x,y)=>s.ga*y, N:(x,y)=>(s.ga+s.de)*x },
+  };
+}
+function readNum(){ const v=+$('g-num').value; if(Number.isFinite(v) && v>=1 && v<=50){ SG.N=Math.round(v); try{ localStorage.setItem('thermo_student_no', String(SG.N)); }catch(e){} } else SG.N=null; }
+function drawG(){
+  const g=setupCanvas($('cv-g')); if(!g) return; const {ctx,w,h}=g;
+  document.querySelectorAll('.station').forEach(s=>s.classList.toggle('on', s.id==='g-s'+SG.st));
+  const titles={1:'תחנה 1 — שלם או לא: שני שדות, אחד מהם מסתיר פונקציה',2:'תחנה 2 — המסלול: מהראשית אל הפינה, בשתי דרכים',3:'תחנה 3 — הגז: שני מסלולים במישור T–p'};
+  $('g-title').textContent=titles[SG.st];
+  if(SG.N===null){ $('g-expr').textContent='?'; $('g-note').innerHTML='<b>הקלידו את מספר התלמיד שלכם</b> (1 עד 50) — כל מספר מקבל שדות, מסלול וגז משלו. את הקריאות שתרשמו כאן תצטרכו לחשב ביד בתרגיל הבית, חלק ג׳.';
+    ctx.fillStyle=css('--muted'); ctx.font='800 18px Heebo, system-ui, sans-serif'; heT(ctx,'הקלידו מספר תלמיד',w/2,h/2); return; }
+  const s=seed(SG.N), F=gameFields(s);
+  const xr=[0,3], yr=[0,3];
+  if(SG.st===1){
+    const D=F[SG.field]; $('g-expr').textContent=D.expr;
+    const x=sliderVal('g-x',xr), y=sliderVal('g-y',yr); $('g-xv').textContent=fmt(x,2); $('g-yv').textContent=fmt(y,2);
+    const hx=1e-4; const My=(D.M(x,y+hx)-D.M(x,y-hx))/(2*hx), Nx=(D.N(x+hx,y)-D.N(x-hx,y))/(2*hx);
+    $('g-M').textContent=fmtS(D.M(x,y),3); $('g-N').textContent=fmtS(D.N(x,y),3); $('g-My').textContent=fmtS(My,3); $('g-Nx').textContent=fmtS(Nx,3);
+    $('g-note').innerHTML=`<span class="pill">מספר ${SG.N}</span> ${D.name}: <span class="m">${D.expr}</span>. <b>רשמו</b> את M ו-N בשתי נקודות שונות ואת שתי הנגזרות המעורבות. המפה מספרת אם השדה שלם — ובתרגיל הבית תוכיחו את זה ביד.`;
+    const P=plot(52, w-16, h-42, 26, xr, yr);
+    let mx=0; for(let i=0;i<=10;i++) for(let j=0;j<=10;j++){ const a=i*0.3,b=j*0.3; const my=(D.M(a,b+hx)-D.M(a,b-hx))/(2*hx), nx=(D.N(a+hx,b)-D.N(a-hx,b))/(2*hx); mx=Math.max(mx,Math.abs(my-nx)); }
+    colorMap(ctx,P,xr,yr,(a,b)=>{ const my=(D.M(a,b+hx)-D.M(a,b-hx))/(2*hx), nx=(D.N(a+hx,b)-D.N(a-hx,b))/(2*hx); return my-nx; }, v=>divColor(mx<1e-7?0:v/mx), 40, 30);
+    let vm=0; const arr=[]; for(let i=0;i<10;i++) for(let j=0;j<8;j++){ const a=(i+0.5)*0.3,b=(j+0.5)*0.375; const u=D.M(a,b),v=D.N(a,b); const L=Math.hypot(u,v); vm=Math.max(vm,L); arr.push([a,b,u,v,L]); }
+    for(const [a,b,u,v,L] of arr){ if(L<1e-12) continue; const sz=14*(0.35+0.65*L/vm); const ang=Math.atan2(-v,u); arrow(ctx,P.X(a)-sz*Math.cos(ang),P.Y(b)-sz*Math.sin(ang),P.X(a)+sz*Math.cos(ang),P.Y(b)+sz*Math.sin(ang),'rgba(26,26,26,0.55)',1.4); }
+    frame(ctx,P,xr,yr,{xlab:'x', ylab:'y', title:'∂M/∂y − ∂N/∂x', xfmt:t=>String(+t.toFixed(1)), yfmt:t=>String(+t.toFixed(1))});
+    dot(ctx,P.X(x),P.Y(y),6,css('--gold')); SG.P=P;
+  } else if(SG.st===2){
+    const D=F[SG.field]; $('g-expr').textContent=D.expr;
+    const I1=simpson(t=>D.M(t,0),0,s.x1,200)+simpson(t=>D.N(s.x1,t),0,s.y1,200);
+    const I2=simpson(t=>D.N(0,t),0,s.y1,200)+simpson(t=>D.M(t,s.y1),0,s.x1,200);
+    $('g-end').textContent='('+fmt(s.x1,1)+', '+fmt(s.y1,1)+')'; $('g-I1').textContent=fmtS(I1,4); $('g-I2').textContent=fmtS(I2,4); $('g-loop').textContent=fmtS(I1-I2,4);
+    $('g-note').innerHTML=`<span class="pill">מספר ${SG.N}</span> מהראשית <span class="m">(0, 0)</span> אל <span class="m">(${fmt(s.x1,1)}, ${fmt(s.y1,1)})</span>. מסלול כחול: קודם לאורך x (על הציר), ואז למעלה. מסלול טורקיז: קודם למעלה, ואז לאורך x. <b>רשמו</b> את שני האינטגרלים לכל שדה. בשדה שלם הם שווים; בשדה לא שלם ההפרש הוא ∮ סביב המלבן.`;
+    const P=plot(52, w-16, h-42, 26, xr, yr);
+    frame(ctx,P,xr,yr,{xlab:'x', ylab:'y', title:D.name, xfmt:t=>String(+t.toFixed(1)), yfmt:t=>String(+t.toFixed(1))});
+    arrow(ctx,P.X(0),P.Y(0),P.X(s.x1),P.Y(0),css('--primary'),3.2); arrow(ctx,P.X(s.x1),P.Y(0),P.X(s.x1),P.Y(s.y1),css('--primary'),3.2);
+    arrow(ctx,P.X(0)+4,P.Y(0),P.X(0)+4,P.Y(s.y1),css('--accent'),3.2); arrow(ctx,P.X(0),P.Y(s.y1),P.X(s.x1),P.Y(s.y1),css('--accent'),3.2);
+    dot(ctx,P.X(0),P.Y(0),6,css('--ink')); dot(ctx,P.X(s.x1),P.Y(s.y1),6,css('--gold'));
+    ctx.fillStyle=css('--ink'); ctx.font='800 13px Heebo, system-ui, sans-serif'; ltrT(ctx,'('+fmt(s.x1,1)+', '+fmt(s.y1,1)+')',P.X(s.x1)+8,P.Y(s.y1)-12,'left');
+  } else {
+    $('g-expr').textContent='מצב 1 → מצב 2: מסלול A (איזותרמי, איזוברי) ומסלול B (איזוברי, איזותרמי)';
+    const P1=s.p1*1e5, P2=s.p2*1e5; const pa=gasPath('A',s.T1,P1,s.T2,P2), pb=gasPath('B',s.T1,P1,s.T2,P2);
+    const WA=integrate(pa).W, WB=integrate(pb).W; const V1=R_GAS*s.T1/P1*1000, V2=R_GAS*s.T2/P2*1000;
+    $('g-st1').textContent=s.T1+' K, '+fmt(s.p1,2)+' bar'; $('g-st2').textContent=s.T2+' K, '+fmt(s.p2,2)+' bar';
+    $('g-V1').textContent=fmt(V1,3); $('g-V2').textContent=fmt(V2,3); $('g-WA').textContent=fmtS(WA,1); $('g-WB').textContent=fmtS(WB,1); $('g-cyc').textContent=fmtS(WA-WB,1);
+    $('g-note').innerHTML=`<span class="pill">מספר ${SG.N}</span> מול אחד של גז אידיאלי. <b>רשמו</b> את שני המצבים ואת ארבע הקריאות. בתרגיל הבית תחשבו ביד את <span class="m">V₁, V₂, W_A, W_B</span> ואת עבודת המעגל, ותשוו. שימו לב לסימן: עבודה חיובית = נעשתה <b>על</b> הגז.`;
+    const half=(w-20)/2; const Tr=[s.T1-30,s.T2+30], pr=[0.5, s.p2+0.5];
+    const PL=plot(50, half-10, h-42, 26, Tr, pr); frame(ctx,PL,Tr,pr,{xlab:'T [K]', ylab:'p [bar]', title:'מישור T–p', xfmt:t=>String(Math.round(t)), yfmt:t=>String(+t.toFixed(1))});
+    const Vr=[Math.max(0,Math.min(V1,V2,R_GAS*s.T1/P2*1000)*0.85), Math.max(V1,V2,R_GAS*s.T2/P1*1000)*1.08];
+    const PR=plot(half+50, w-14, h-42, 26, Vr, pr); frame(ctx,PR,Vr,pr,{xlab:'V [L]', ylab:'p [bar]', title:'מישור p–V', xfmt:t=>String(+t.toFixed(0)), yfmt:t=>String(+t.toFixed(1))});
+    for(const [pts,col] of [[pa,css('--primary')],[pb,css('--accent')]]){ ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=3;
+      ctx.beginPath(); pts.forEach(([T,p],i)=>{ const a=PL.X(T),b=PL.Y(p/1e5); i?ctx.lineTo(a,b):ctx.moveTo(a,b); }); ctx.stroke();
+      ctx.beginPath(); pts.forEach(([T,p],i)=>{ const a=PR.X(R_GAS*T/p*1000),b=PR.Y(p/1e5); i?ctx.lineTo(a,b):ctx.moveTo(a,b); }); ctx.stroke(); ctx.restore(); }
+    dot(ctx,PL.X(s.T1),PL.Y(s.p1),6,css('--ink')); dot(ctx,PL.X(s.T2),PL.Y(s.p2),6,css('--ink')); dot(ctx,PR.X(V1),PR.Y(s.p1),6,css('--ink')); dot(ctx,PR.X(V2),PR.Y(s.p2),6,css('--ink'));
+    ctx.fillStyle=css('--ink'); ctx.font='800 12px Heebo, system-ui, sans-serif';
+    ltrT(ctx,'1',PL.X(s.T1)-10,PL.Y(s.p1)-10); ltrT(ctx,'2',PL.X(s.T2)+10,PL.Y(s.p2)-10); ltrT(ctx,'1',PR.X(V1)+10,PR.Y(s.p1)-10); ltrT(ctx,'2',PR.X(V2)-10,PR.Y(s.p2)-10);
+    ctx.fillStyle=css('--primary'); ltrT(ctx,'A',PL.X(s.T1)-12,PL.Y((s.p1+s.p2)/2)); ctx.fillStyle=css('--accentdk'); ltrT(ctx,'B',PL.X(s.T2)+12,PL.Y((s.p1+s.p2)/2));
+  }
+}
+dragOn($('cv-g'),(px,py)=>{ if(SG.st!==1||!SG.P) return; const P=SG.P; const x=Math.max(0,Math.min(3,P.invX(px))), y=Math.max(0,Math.min(3,P.invY(py))); $('g-x').value=Math.round(x/3*1000); $('g-y').value=Math.round(y/3*1000); drawG(); });
+function exportData(){
+  if(SG.N===null){ $('g-out').value='הקלידו מספר תלמיד קודם.'; return; }
+  const s=seed(SG.N), F=gameFields(s); const L=[];
+  L.push('=== mapat hagova / unit 0 / student no. '+SG.N+' ===');
+  L.push('Field 1: M = '+(2*s.al)+'xy + '+s.be+'y^2 ; N = '+s.al+'x^2 + '+(2*s.be)+'xy');
+  L.push('Field 2: M = '+s.ga+'y ; N = '+(s.ga+s.de)+'x');
+  const xs=[[0.5,1.0],[1.5,2.0],[2.5,1.5]];
+  for(const k of [1,2]){ const D=F[k]; for(const [x,y] of xs){ const hx=1e-4; const My=(D.M(x,y+hx)-D.M(x,y-hx))/(2*hx), Nx=(D.N(x+hx,y)-D.N(x-hx,y))/(2*hx);
+    L.push(`Field ${k} at (${x}, ${y}): M = ${fmtS(D.M(x,y),3)}, N = ${fmtS(D.N(x,y),3)}, dM/dy = ${fmtS(My,3)}, dN/dx = ${fmtS(Nx,3)}`); } }
+  L.push('Path end point: ('+s.x1+', '+s.y1+')');
+  for(const k of [1,2]){ const D=F[k]; const I1=simpson(t=>D.M(t,0),0,s.x1,200)+simpson(t=>D.N(s.x1,t),0,s.y1,200); const I2=simpson(t=>D.N(0,t),0,s.y1,200)+simpson(t=>D.M(t,s.y1),0,s.x1,200);
+    L.push(`Field ${k}: x-first = ${fmtS(I1,4)}, y-first = ${fmtS(I2,4)}, loop = ${fmtS(I1-I2,4)}`); }
+  const P1=s.p1*1e5, P2=s.p2*1e5; const WA=integrate(gasPath('A',s.T1,P1,s.T2,P2)).W, WB=integrate(gasPath('B',s.T1,P1,s.T2,P2)).W;
+  L.push(`Gas: state 1 = (${s.T1} K, ${s.p1.toFixed(2)} bar), state 2 = (${s.T2} K, ${s.p2.toFixed(2)} bar), n = 1 mol`);
+  L.push(`V1 = ${fmt(R_GAS*s.T1/P1*1000,3)} L, V2 = ${fmt(R_GAS*s.T2/P2*1000,3)} L, W_A = ${fmtS(WA,1)} J, W_B = ${fmtS(WB,1)} J, cycle = ${fmtS(WA-WB,1)} J`);
+  L.push('exported: '+new Date().toLocaleString('en-GB'));
+  $('g-out').value=L.join('\n');
+  try{ if(navigator.clipboard){ navigator.clipboard.writeText($('g-out').value).catch(()=>{}); } }catch(e){}
+}
+
+/* ============================================================
+   חיווט
+   ============================================================ */
+const DRAW={a:drawA,b:drawB,c:drawC,d:drawD,e:drawE,game:drawG};
+let CUR='a';
+function drawCur(){ try{ DRAW[CUR](); }catch(e){ console.error(CUR,e); } }
+function selectTab(key){ const b=document.querySelector('.tabs [role=tab][data-tab="'+key+'"]'); if(b) b.click(); }
+function stopAnims(){ if(SB.anim){cancelAnimationFrame(SB.anim);SB.anim=null;$('b-go').textContent='▶ הקטינו את הצעדים';} if(SD.anim){cancelAnimationFrame(SD.anim);SD.anim=null;SD.t=1;$('d-go').textContent='▶ הריצו את המסלול';} }
+document.querySelectorAll('.tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
+  CUR=b.dataset.tab; stopAnims();
+  document.querySelectorAll('.tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.id==='pane-'+CUR));
+  requestAnimationFrame(drawCur);
+}));
+function chips(elId, list, cur, onpick){
+  const el=$(elId); el.innerHTML='';
+  list.forEach(D=>{ const b=document.createElement('button'); b.textContent=D.lbl; b.setAttribute('aria-pressed', D.key===cur?'true':'false');
+    b.addEventListener('click',()=>{ onpick(D.key); [...el.children].forEach(c=>c.setAttribute('aria-pressed', c===b?'true':'false')); }); el.appendChild(b); });
+}
+chips('a-chips', FUNS, SA.fn, k=>{ SA.fn=k; drawA(); });
+chips('b-chips', FUNS, SB.fn, k=>{ SB.fn=k; drawB(); });
+chips('c-chips', DIFFS, SC.fn, k=>{ SC.fn=k; drawC(); });
+chips('e-chips', REC, SE.fn, k=>{ SE.fn=k; drawE(); });
+['a-x','a-y'].forEach(id=>$(id).addEventListener('input',drawA));
+['b-x','b-y','b-h'].forEach(id=>$(id).addEventListener('input',drawB));
+['c-x','c-y'].forEach(id=>$(id).addEventListener('input',drawC));
+['e-x','e-y'].forEach(id=>$(id).addEventListener('input',drawE));
+['d-T1','d-p1','d-T2','d-p2','d-bend'].forEach(id=>$(id).addEventListener('input',()=>{ SD.t=1; drawD(); }));
+['g-x','g-y'].forEach(id=>$(id).addEventListener('input',drawG));
+$('b-go').addEventListener('click',bAnim);
+$('b-reset').addEventListener('click',()=>{ stopAnims(); $('b-h').value=25; $('b-x').value=350; $('b-y').value=350; drawB(); });
+$('d-go').addEventListener('click',dAnim);
+document.querySelectorAll('#d-path button').forEach(b=>b.addEventListener('click',()=>{ SD.path=b.dataset.p; SD.t=1; document.querySelectorAll('#d-path button').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false')); drawD(); }));
+document.querySelectorAll('#g-st button').forEach(b=>b.addEventListener('click',()=>{ SG.st=+b.dataset.s; document.querySelectorAll('#g-st button').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false')); drawG(); }));
+for(const id of ['g-field','g-field2']) document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{ SG.field=+b.dataset.f; document.querySelectorAll('#g-field button, #g-field2 button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.f===b.dataset.f?'true':'false')); drawG(); }));
+$('g-num').addEventListener('input',()=>{ readNum(); drawG(); });
+$('g-export').addEventListener('click',exportData);
+try{ const v=localStorage.getItem('thermo_student_no'); if(v){ $('g-num').value=v; readNum(); } }catch(e){}
+/* קישור עמוק: sim_map.html#d או #game */
+(function(){ const k=(location.hash||'').replace('#',''); if(DRAW[k] && k!=='a') selectTab(k); })();
+addEventListener('hashchange',()=>{ const k=(location.hash||'').replace('#',''); if(DRAW[k]) selectTab(k); });
+$('themeb').addEventListener('click', function(){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', dark?'light':'dark');
+  this.textContent = dark?'מצב כהה':'מצב בהיר'; drawCur();
+});
+addEventListener('resize', drawCur);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopAnims(); });
+drawCur();
+</script>
+</body>
+</html>

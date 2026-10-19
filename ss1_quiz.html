@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בוחן עצמי · למידה עצמית 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1F4E79;--teal:#2A9D8F;--tealdk:#1E7A6E;--gold:#D9A441;--terra:#C0553A;--sky:#7B9ACC;--parch:#FBF8F1;--ink:#1c2733;--muted:#5a6a7a;--line:#DDE3EC;--ok:#2E6F40;--okbg:#EEF5F0;--bad:#C0553A;--badbg:#F8ECE8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--parch);color:var(--ink);font-family:"Heebo",system-ui,sans-serif;line-height:1.6}
+header{background:var(--navy);color:#fff;padding:18px 16px}
+header h1{margin:0;font-size:clamp(20px,3.4vw,28px);font-weight:800}
+header p{margin:4px 0 0;opacity:.9;font-size:15px}
+main{max-width:860px;margin:0 auto;padding:18px 16px 60px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.intro b{color:var(--navy)}
+.m{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:"Times New Roman",Georgia,serif;font-size:1.08em;white-space:nowrap}
+.q h3{margin:0 0 6px;font-size:17px;font-weight:600;color:var(--ink)}
+.q h3 .num{display:inline-block;background:var(--navy);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;font-size:14px;margin-left:8px}
+.q .part{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+input[type=text]{direction:ltr;font-size:17px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;width:160px;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:var(--teal)}
+button{font-family:inherit;font-size:15px;font-weight:600;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;background:var(--teal);color:#fff}
+button:hover{background:var(--tealdk)}
+.unit{color:var(--muted);font-size:15px}
+.fb{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:15px;display:none}
+.fb.ok{display:block;background:var(--okbg);color:var(--ok);border-right:4px solid var(--ok)}
+.fb.bad{display:block;background:var(--badbg);color:var(--bad);border-right:4px solid var(--bad)}
+.q.done{border-color:var(--ok)}
+#prog{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
+#prog div{height:100%;width:0;background:var(--gold);transition:width .3s}
+#codebox{display:none;text-align:center;border:2px solid var(--gold);background:#FBF3DE}
+#codebox .code{direction:ltr;font-size:clamp(26px,6vw,40px);font-weight:800;letter-spacing:3px;color:var(--navy);margin:8px 0}
+#student{width:110px}
+.note{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>בוחן עצמי · ויריאל וואן דר ואלס</h1>
+  <p>תרמודינמיקה לכימאים · יחידה 2 · למידה עצמית 1 · הגשה עד 2.12.2026</p>
+</header>
+<main>
+  <div class="card intro">
+    <p>שמונה שאלות עם תשובה מספרית. לכל שאלה: מחשבים במחברת, מקלידים את המספר ולוחצים <b>בדיקה</b>. אפשר לנסות כמה פעמים שצריך — אחרי ניסיון שגוי מופיע רמז שמפנה לחלק המתאים במערך.</p>
+    <p>כשכל השאלות נכונות מופיע <b>קוד סיום</b> אישי. את הקוד שולחים לעומרי — זו ההגשה של החבילה.</p>
+    <div class="row"><label for="student"><b>מספר תלמיד (1–50):</b></label><input type="text" id="student" inputmode="numeric" autocomplete="off"></div>
+    <p class="note">קבועים: <span class="m">R = 0.083145 L bar mol⁻¹ K⁻¹</span>. פרמטרי ואן דר ואלס נתונים בכל שאלה (<span class="m">a</span> ב-<span class="m">L² bar mol⁻²</span>, <span class="m">b</span> ב-<span class="m">L mol⁻¹</span>).</p>
+    <div id="prog"><div></div></div>
+    <p class="note" id="progtxt">0 מתוך 8</p>
+  </div>
+  <div id="qs"></div>
+  <div class="card" id="codebox">
+    <div>כל הכבוד — שמונה מתוך שמונה.</div>
+    <div class="code" id="code"></div>
+    <div class="note">שלחו לעומרי את הקוד יחד עם מספר התלמיד. הקוד אישי — לכל מספר קוד אחר.</div>
+  </div>
+</main>
+<script>
+const Q=[
+ {part:'מפגש 4',t:'ארגון ב-<span class="m">300 K</span>, <span class="m">B<sub>2</sub> = −15.2 cm³ mol⁻¹</span>. מה <span class="m">Z</span> ב-<span class="m">20 bar</span> לפי האיבר הראשון של הטור בלחץ?',unit:'',ans:0.98781,tol:0.0006,hint:'Z ≈ 1 + B₂p/RT, עם B₂ בליטר למול (חלק 4 במערך; דוגמה 4 במפגש).'},
+ {part:'חלק 2',t:'<span class="m">B<sub>2</sub></span> של <span class="m">CO₂</span> ב-<span class="m">400 K</span> לפי ואן דר ואלס, עם <span class="m">a = 3.640</span> ו-<span class="m">b = 0.04267</span>. התשובה ב-<span class="m">cm³ mol⁻¹</span>:',unit:'cm³ mol⁻¹',ans:-66.78,tol:1.0,hint:'B₂ = b − a/RT; RT = 0.083145 × 400. התשובה בליטר — כפול 1000.'},
+ {part:'חלק 3',t:'טמפרטורת בויל של חמצן לפי ואן דר ואלס, עם <span class="m">a = 1.382</span> ו-<span class="m">b = 0.03186</span>:',unit:'K',ans:521.7,tol:3,hint:'T_B = a/(Rb), עם R = 0.083145 (חלק 3).'},
+ {part:'חלק 4',t:'<span class="m">B<sub>2</sub>′</span> של ארגון ב-<span class="m">300 K</span>, כאשר <span class="m">B<sub>2</sub> = −15.2 cm³ mol⁻¹</span>. הקלידו ביחידות של <span class="m">10⁻⁴ bar⁻¹</span>:',unit:'×10⁻⁴ bar⁻¹',ans:-6.094,tol:0.05,hint:'B₂′ = B₂/RT. B₂ בליטר למול, RT = 24.944 L bar/mol.'},
+ {part:'חלק 4',t:'לגז ב-<span class="m">300 K</span>: <span class="m">B<sub>2</sub> = −20 cm³ mol⁻¹</span>, <span class="m">B<sub>3</sub> = 1200 cm⁶ mol⁻²</span>. מה <span class="m">B<sub>3</sub>′</span>? הקלידו ביחידות של <span class="m">10⁻⁶ bar⁻²</span>:',unit:'×10⁻⁶ bar⁻²',ans:1.2858,tol:0.012,hint:'B₃′ = (B₃ − B₂²)/(RT)² — אל תשכחו את −B₂². ביחידות ליטר: B₃ = 1.2×10⁻³ L²/mol².'},
+ {part:'חלק 6',t:'לגז ב-<span class="m">250 K</span> נמדדו <span class="m">B<sub>2</sub> = −50 cm³ mol⁻¹</span> ו-<span class="m">B<sub>3</sub> = 1600 cm⁶ mol⁻²</span>. מה <span class="m">a</span> לפי ואן דר ואלס?',unit:'L² bar mol⁻²',ans:1.8708,tol:0.02,hint:'b = √B₃ = 40 cm³/mol; a = (b − B₂)RT — הכול בליטר (חלק 6).'},
+ {part:'חלק 5',t:'חנקן ב-<span class="m">500 K</span>, כאשר <span class="m">B<sub>2</sub> = +16.6 cm³ mol⁻¹</span>. מה <span class="m">I = ∫₀ᵖ (Z − 1)/p′ dp′</span> ב-<span class="m">20 bar</span>, בקירוב של לחץ נמוך? הקלידו את <span class="m">1000 × I</span>:',unit:'×10⁻³',ans:7.986,tol:0.08,hint:'I ≈ B₂p/RT (חלק 5). שימו לב לסימן — מעל טמפרטורת בויל.'},
+ {part:'חלק 1',t:'ארגון ב-<span class="m">300 K</span> וב-<span class="m">ρ = 4.00 mol L⁻¹</span>. מה <span class="m">Z</span> לפי משוואת ואן דר ואלס המלאה, עם <span class="m">a = 1.355</span> ו-<span class="m">b = 0.0320</span>?',unit:'',ans:0.92950,tol:0.0006,hint:'Z = 1/(1 − bρ) − aρ/RT (חלק 1). חשבו כל איבר בנפרד.'}
+];
+const KEY='thermo_ss1_quiz_v1';
+let st={};try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){st={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function parse(x){x=String(x).trim().replace(/[−–]/g,'-').replace(',','.');if(!/^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(x))return NaN;return parseFloat(x)}
+function codeFor(N){const v=(N*7349+4021)%46649;let s=v.toString(36).toUpperCase().padStart(3,'0');const c='ABCDEFGHJKLMNPQRSTUVWXYZ'[(N*13+7)%24];return 'VS1-'+s+c}
+const qs=document.getElementById('qs');
+Q.forEach((q,i)=>{const d=document.createElement('div');d.className='card q';d.id='q'+i;
+ d.innerHTML=`<h3><span class="num">${i+1}</span>${q.t}</h3><div class="part">${q.part}</div><div class="row"><input type="text" id="in${i}" inputmode="decimal" autocomplete="off"> <span class="unit">${q.unit?('<span class="m">'+q.unit+'</span>'):''}</span><button data-i="${i}">בדיקה</button></div><div class="fb" id="fb${i}"></div>`;
+ qs.appendChild(d)});
+function check(i,silent){const q=Q[i];const v=parse(document.getElementById('in'+i).value);const fb=document.getElementById('fb'+i);
+ if(isNaN(v)){if(!silent){fb.className='fb bad';fb.textContent='הקלידו מספר (למשל ‎-12.5‎ או ‎0.987‎).'}return}
+ st['a'+i]=document.getElementById('in'+i).value;
+ if(Math.abs(v-q.ans)<=q.tol){st['ok'+i]=1;fb.className='fb ok';fb.textContent='נכון ✓';document.getElementById('q'+i).classList.add('done')}
+ else{st['ok'+i]=0;if(!silent){fb.className='fb bad';fb.textContent='עדיין לא. רמז: '+q.hint}document.getElementById('q'+i).classList.remove('done')}
+ save();update()}
+function update(){const n=Q.filter((q,i)=>st['ok'+i]).length;document.querySelector('#prog div').style.width=(100*n/Q.length)+'%';document.getElementById('progtxt').textContent=n+' מתוך '+Q.length;
+ const N=parseInt(document.getElementById('student').value,10);const box=document.getElementById('codebox');
+ if(n===Q.length&&N>=1&&N<=50&&String(N)===document.getElementById('student').value.trim()){box.style.display='block';document.getElementById('code').textContent=codeFor(N)}
+ else if(n===Q.length){box.style.display='block';document.getElementById('code').textContent='הקלידו מספר תלמיד'}
+ else box.style.display='none'}
+qs.addEventListener('click',e=>{if(e.target.tagName==='BUTTON')check(+e.target.dataset.i)});
+qs.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id.startsWith('in'))check(+e.target.id.slice(2))});
+const sIn=document.getElementById('student');sIn.value=st.N||'';sIn.addEventListener('input',()=>{st.N=sIn.value.trim();save();update()});
+Q.forEach((q,i)=>{if(st['a'+i]!=null){document.getElementById('in'+i).value=st['a'+i];check(i,true)}});update();
+</script>
+</body>
+</html>

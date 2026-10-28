@@ -119,7 +119,7 @@ input[type=password],input[type=text],textarea{font:inherit; padding:8px 10px; b
 <footer class="footer"><div class="wrap">
   <b>תרמודינמיקה לכימאים</b> · תוכנית אודיסיאה · בית הספר לכימיה, אוניברסיטת תל אביב<br>
   מרצה הקורס: ד״ר עומרי מורג<br>
-  <span class="tiny">גרסה <span class="num">0.6.2</span> · בנייה <span class="num">2026-10-26</span> · כל החומרים באתר מיועדים לשימוש הסטודנטים בקורס בלבד.</span>
+  <span class="tiny">גרסה <span class="num">0.6.3</span> · בנייה <span class="num">2026-10-28</span> · כל החומרים באתר מיועדים לשימוש הסטודנטים בקורס בלבד.</span>
 </div></footer>
 <div class="toast" id="toast"></div>
 
@@ -162,8 +162,8 @@ const UNITS = [
    student:"unit02_student.pdf", card:"unit02_summary.pdf", exercises:"unit02_exercises.pdf", solutions:"unit02_exercises_solutions.pdf",
    hw:"hw03.pdf", hwsol:null, slides:"slides_02.html", sim:"sim_realgas.html", simName:"מגז אידיאלי לגז אמיתי",
    simDesc:"Z של גזים אמיתיים מנתוני NIST, חלקיקים אמיתיים עם משיכה ודחייה שמהם נמדד הלחץ, B₂(T) של ארגון והטור מול הנתונים, איזותרמות של ואן דר ואלס עם a ו-b בזמן אמת — ו״הגז המסתורי״ עם מספר התלמיד",
-   selfstudy:"ויריאל וואן דר ואלס בהרחבה — חבילת למידה עצמית 1 · יעד 2.12.2026",
-   ss:{title:"חבילת למידה עצמית 1 — ויריאל וואן דר ואלס", due:"2.12.2026", roadmap:"ss1_roadmap.pdf", plan:"ss1_plan.pdf", slides:"ss1_slides.html", practice:"ss1_practice.pdf", practiceSol:"ss1_practice_solutions.pdf", card:"ss1_summary.pdf", quiz:"ss1_quiz.html", video:null}},
+   selfstudy:"ויריאל וואן דר ואלס בהרחבה — חבילת למידה עצמית 1 · יעד 16.12.2026",
+   ss:{title:"חבילת למידה עצמית 1 — ויריאל וואן דר ואלס", due:"16.12.2026", roadmap:"ss1_roadmap.pdf", plan:"ss1_plan.pdf", slides:"ss1_slides.html", practice:"ss1_practice.pdf", practiceSol:"ss1_practice_solutions.pdf", card:"ss1_summary.pdf", quiz:"ss1_quiz.html", video:null}},
   {id:3, title:"חוק האפס והחוק הראשון", sem:"א", status:"planned", sessions:[5],
    topics:"מדחום וטרנזיטיביות · dU = đQ + đW · C_V, C_p, אנתלפיה · C_p − C_V = nR · γ", simName:"מאזן האנרגיה"},
   {id:4, title:"תרמוכימיה", sem:"א", status:"planned", sessions:[],
@@ -187,18 +187,19 @@ const UNITS = [
 const SESSIONS = [
   /* ---- סמסטר א׳: 19.10.2026–14.1.2027 · ימי רביעי 18:00–19:30 ---- */
   {n:0, sem:"א", date:"2026-10-21", type:"open", title:"פתיחת שנה באודיסיאה — אין שיעור תרמודינמיקה"},
-  {n:1, sem:"א", num:1, date:"2026-10-28", type:"lesson", unit:0, title:"0א — דיפרנציאל שלם וקריטריון אוילר"},
-  {n:2, sem:"א", num:2, date:"2026-11-04", type:"lesson", unit:0, title:"0ב — đ, אינטגרל קווי, שחזור S, היחס הציקלי"},
-  {n:3, sem:"א", num:3, date:"2026-11-11", type:"lesson", unit:1, title:"1 — מושגים בסיסיים ועבודה"},
-  {n:4, sem:"א", num:4, date:"2026-11-18", type:"lesson", unit:2, title:"2 — משוואות מצב של גזים", note:"← למידה עצמית 1: ויריאל וואן דר ואלס (יעד 2.12) · תרגיל בית 3 (הגשה 2.12)"},
-  {n:5, sem:"א", num:5, date:"2026-11-25", type:"lesson", unit:3, title:"3 — חוק האפס והחוק הראשון"},
-  {n:6, sem:"א", num:6, date:"2026-12-02", type:"lesson", unit:5, title:"5א — תהליכים בגז אידיאלי", note:"סיכום למידה עצמית 1 · הגשת תרגיל בית 3"},
+  {n:49, sem:"א", date:"2026-10-28", type:"holiday", title:"בוטל — כל השיעורים באוניברסיטה בוטלו בגלל אירוע; יושלם ביום השלמה"},
+  {n:1, sem:"א", num:1, date:"2026-11-04", type:"lesson", unit:0, title:"0א — דיפרנציאל שלם וקריטריון אוילר"},
+  {n:2, sem:"א", num:2, date:"2026-11-11", type:"lesson", unit:0, title:"0ב — đ, אינטגרל קווי, שחזור S, היחס הציקלי"},
+  {n:3, sem:"א", num:3, date:"2026-11-18", type:"lesson", unit:1, title:"1 — מושגים בסיסיים ועבודה"},
+  {n:4, sem:"א", num:4, date:"2026-11-25", type:"lesson", unit:2, title:"2 — משוואות מצב של גזים", note:"← למידה עצמית 1: ויריאל וואן דר ואלס (יעד 16.12) · תרגיל בית 3 (הגשה 16.12)"},
+  {n:5, sem:"א", num:5, date:"2026-12-02", type:"lesson", unit:3, title:"3 — חוק האפס והחוק הראשון"},
   {n:50, sem:"א", date:"2026-12-09", type:"holiday", title:"חנוכה — אין לימודים"},
-  {n:7, sem:"א", num:7, date:"2026-12-16", type:"lesson", unit:5, title:"5ב — אדיאבטי, התפשטות חופשית, הטבלה", note:"← למידה עצמית 2: תרמוכימיה (יעד 30.12)"},
-  {n:8, sem:"א", num:8, date:"2026-12-23", type:"lesson", unit:6, title:"6א — החוק השני ואנטרופיה"},
-  {n:9, sem:"א", num:9, date:"2026-12-30", type:"lesson", unit:6, title:"6ב — S פונקציית מצב, ΔS בתהליכים", note:"סיכום למידה עצמית 2"},
-  {n:10, sem:"א", num:10, date:"2027-01-06", type:"lesson", unit:6, title:"6ג — הפיך ובלתי הפיך, ערבוב"},
-  {n:11, sem:"א", num:11, date:"2027-01-13", type:"review", title:"חזרה מסכמת + בוחן לדוגמה", note:"השיעור האחרון של סמסטר א׳"},
+  {n:6, sem:"א", num:6, date:"2026-12-16", type:"lesson", unit:5, title:"5א — תהליכים בגז אידיאלי", note:"סיכום למידה עצמית 1 · הגשת תרגיל בית 3"},
+  {n:7, sem:"א", num:7, date:"2026-12-23", type:"lesson", unit:5, title:"5ב — אדיאבטי, התפשטות חופשית, הטבלה", note:"← למידה עצמית 2: תרמוכימיה (יעד 6.1)"},
+  {n:8, sem:"א", num:8, date:"2026-12-30", type:"lesson", unit:6, title:"6א — החוק השני ואנטרופיה"},
+  {n:9, sem:"א", num:9, date:"2027-01-06", type:"lesson", unit:6, title:"6ב — S פונקציית מצב, ΔS בתהליכים", note:"סיכום למידה עצמית 2"},
+  {n:10, sem:"א", num:10, date:"2027-01-13", type:"lesson", unit:6, title:"6ג — הפיך ובלתי הפיך, ערבוב", note:"השיעור האחרון בלוח הרגיל של סמסטר א׳"},
+  {n:11, sem:"א", date:null, type:"makeup", title:"יום השלמה על 28.10 — חזרה מסכמת + בוחן לדוגמה", when:"יום השלמה · התאריך יעודכן"},
   {n:12, sem:"א", date:null, type:"makeup", title:"יום השלמה על חנוכה — חזרה ב׳ + פתרון הבוחן לדוגמה", when:"יום השלמה · התאריך יעודכן"},
   {n:13, sem:"א", date:null, type:"quiz", title:"בוחן סוף סמסטר א׳ · יחידות 0 עד 6", when:"תקופת הלמידה למבחנים (אחרי 14.1) · יעודכן"},
   /* ---- סמסטר ב׳: 1.3–24.6.2027 · 4 שעות שבועיות ---- */
@@ -240,11 +241,14 @@ const Store = {
 };
 /* הודעות — מה שכתוב כאן הוא מה שהתלמידים רואים. עריכה = עדכון הקובץ ודחיפה לגיטהאב */
 const ANNOUNCEMENTS = [
+  {date:"2026-10-28", title:"השיעור היום (28.10) בוטל", pinned:true,
+   body:"כל השיעורים באוניברסיטה בוטלו היום בגלל אירוע. השיעור הראשון שלנו עובר לרביעי הבא, 4.11, בשעה 18:00, וכל הלוח זז בשבוע — לוח השנה באתר כבר מעודכן. השיעור שנפל יושלם ביום השלמה. משימת המולים עדיין בתוקף: תביאו את המספרים שלכם ל-4.11.",
+   link:null, linkText:""},
   {date:"2026-10-26", title:"משימת פתיחה ליום המול: כמה מולים יש בחדר שלכם?", pinned:true,
    body:"לכבוד יום המול, שהיה ביום שישי: משימה קצרה של רבע שעה לפני השיעור הראשון. מודדים את החדר, מחשבים כמה מולים של אוויר יש בו, ומשחקים עם נגזרות חלקיות. אין הגשה ואין ציון. מביאים את המספרים לשיעור ביום רביעי.",
    link:"mole_teaser.pdf", linkText:"לדף המשימה"},
   {date:"2026-10-19", title:"ברוכים הבאים לאתר הקורס", pinned:true,
-   body:"יחידות 0, 1 ו-2 מוכנות: מערך לתלמיד, דף סיכום, תרגילי כיתה עם פתרונות, תרגיל בית, מצגת וסימולציה לכל יחידה, וגם חבילת הלמידה העצמית הראשונה. השיעור הראשון ביום רביעי 28.10 בשעה 18:00. ב-21.10 אין שיעור."}
+   body:"יחידות 0, 1 ו-2 מוכנות: מערך לתלמיד, דף סיכום, תרגילי כיתה עם פתרונות, תרגיל בית, מצגת וסימולציה לכל יחידה, וגם חבילת הלמידה העצמית הראשונה. השיעור הראשון ביום רביעי 4.11 בשעה 18:00 (28.10 בוטל). ב-21.10 אין שיעור."}
 ];
 const state = { page:"home", overrides:{}, announcements: ANNOUNCEMENTS };
 const HE_DAYS=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"], HE_MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
@@ -318,7 +322,7 @@ function pageHome(){
   </section>
   ${journey()}
   <section class="section"><div class="grid c2">
-    <div class="card accent"><h3>${nx?(nx.n===1?"המפגש הראשון":"המפגש הבא"):"הסמסטר הסתיים"}</h3>${nx&&nx.n===1?`<p class="tiny">21.10 — פתיחת שנה באודיסיאה, אין שיעור.</p>`:""}
+    <div class="card accent"><h3>${nx?(nx.n===1?"המפגש הראשון":"המפגש הבא"):"הסמסטר הסתיים"}</h3>${nx&&nx.n===1?`<p class="tiny">28.10 בוטל בגלל אירוע באוניברסיטה — הקורס נפתח ב-4.11.</p>`:""}
       ${nx?`<p><b>${esc(fmtDate(nx.date))}</b> · ${bidi(sesTime(nx))}</p><p>${esc(nx.title)}</p>${nx.unit!==undefined?`<div class="links"><button class="btn btn-primary btn-sm" data-go="units" data-anchor="u${nx.unit}">ליחידה ${nx.unit}</button></div>`:""}`:""}
     </div>
     <div class="card gold"><h3>הודעות</h3>${anns.slice(0,3).map(a=>`<div class="ann"><div class="d">${esc(fmtDate(a.date))}</div><b>${esc(a.title)}</b>${a.body?`<div style="font-size:13.5px;color:var(--ink-2)">${esc(a.body)}</div>`:""}${a.link?`<div style="margin-top:4px"><a href="${esc(a.link)}" target="_blank" rel="noopener">📄 ${esc(a.linkText||"לפתיחה")}</a></div>`:""}</div>`).join("")}</div>
@@ -380,7 +384,7 @@ function pageCalendar(){
   return `<section class="section"><div class="section-head"><h2>לוח השנה</h2><p>סמסטר א׳: 19.10.2026 עד 14.1.2027 · חופשת סמסטר: 15.1 עד 28.2 · סמסטר ב׳: 1.3 עד 24.6.2027</p></div>
   <h3 style="color:var(--accent-700)">סמסטר א׳ — ימי רביעי, <span class="num">18:00–19:30</span></h3>
   <table class="cal"><tr><th>#</th><th>תאריך</th><th>נושא</th><th>הערה</th></tr>${calRows("א")}</table>
-  <p class="tiny" style="margin-top:10px">9.12 נופל בחנוכה ואין בו לימודים — לכן השיעור האחרון ב-13.1, והחזרה השנייה עוברת ליום השלמה. הבוחן בתקופת הלמידה למבחנים שאחרי 14.1.</p>
+  <p class="tiny" style="margin-top:10px">28.10 בוטל בגלל אירוע באוניברסיטה, ו-9.12 נופל בחנוכה — לכן הלוח זז בשבוע, השיעור האחרון ב-13.1, ושתי החזרות המסכמות עוברות לימי השלמה. הבוחן בתקופת הלמידה למבחנים שאחרי 14.1.</p>
   <h3 style="color:var(--accent-700);margin-top:26px">סמסטר ב׳ — 4 שעות בשבוע</h3>
   <table class="cal"><tr><th>#</th><th>תאריך</th><th>נושא</th><th>הערה</th></tr>${calRows("ב")}</table>
   <p class="tiny" style="margin-top:10px">לוח מתוכנן: היום והשעות של סמסטר ב׳ יאושרו מול מערכת השעות. חופשת פסח: 18.4 עד 30.4, יום העצמאות 12.5. שני השבועות האחרונים שמורים כימי השלמה — אם לא בוטל דבר, הם הופכים לימי חזרה.</p>
@@ -403,7 +407,7 @@ function pageSims(){
 function pageQuiz(){
   return `<section class="section"><div class="section-head"><h2>הבוחן והמבחן</h2></div>
   <div class="grid c2">
-    <div class="card warn"><h3>בוחן סוף סמסטר א׳</h3><p><b>מתי:</b> בתקופת הלמידה למבחנים שאחרי סוף הסמסטר (14.1.2027) — התאריך יעודכן.</p><p><b>מה:</b> יחידות 0–6. בלי דף נוסחאות. שאלות פיתוח: ״הראו ש…״, ״פתחו…״, ולצדן שאלות הבנה קצרות.</p><p><b>מיחידה 0:</b> שאלה אחת ישירה — נתון M dx + N dy: בדקו אוילר, שחזרו, חשבו לאורך מסלול. ובכל שאר השאלות הכלים בתוך הפיזיקה.</p><div class="links"><span class="btn btn-ghost btn-sm" aria-disabled="true">בוחן לדוגמה · יעלה לקראת השיעור ב-13.1</span></div></div>
+    <div class="card warn"><h3>בוחן סוף סמסטר א׳</h3><p><b>מתי:</b> בתקופת הלמידה למבחנים שאחרי סוף הסמסטר (14.1.2027) — התאריך יעודכן.</p><p><b>מה:</b> יחידות 0–6. בלי דף נוסחאות. שאלות פיתוח: ״הראו ש…״, ״פתחו…״, ולצדן שאלות הבנה קצרות.</p><p><b>מיחידה 0:</b> שאלה אחת ישירה — נתון M dx + N dy: בדקו אוילר, שחזרו, חשבו לאורך מסלול. ובכל שאר השאלות הכלים בתוך הפיזיקה.</p><div class="links"><span class="btn btn-ghost btn-sm" aria-disabled="true">בוחן לדוגמה · יעלה לקראת יום ההשלמה</span></div></div>
     <div class="card"><h3>המבחן המסכם</h3><p>בתקופת המבחנים שאחרי 24.6.2027: שלוש שאלות פיתוח ושאלת בונוס, שלוש שעות, בלי דף נוסחאות. מבחן לדוגמה עם פתרון מלא יעלה בסמסטר ב׳.</p></div>
   </div>
   <div class="card gold" style="margin-top:16px"><h3>איך נראית שאלה טובה בקורס הזה</h3><p>״למערכת U = aVT⁴ ו-p = aT⁴/3: כתבו את dS, בדקו את קריטריון אוילר, שחזרו את S(T,V), וודאו את הזהות (∂U/∂V)_T = T(∂p/∂T)_V − p.״ — שאלת מבחן קלאסית, וזה חלק ד׳ של תרגיל בית 1.</p></div>

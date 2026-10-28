@@ -125,6 +125,15 @@ table.res tr.lg-A td.lb{border-right:5px solid var(--accent)} table.res tr.lg-B 
 table.res tr.tot td{font-weight:900; background:color-mix(in srgb, var(--primary) 6%, var(--panel)); border-bottom:2px solid var(--line)}
 table.res .m{font-size:1.02em}
 
+.card.mystery{border:2px solid var(--accent); background:color-mix(in srgb, var(--accent) 7%, var(--panel))}
+.card.mystery h3{color:var(--accentdk); font-size:16.5px}
+.card.mystery p{margin:0 0 8px; line-height:1.7}
+.card.mystery p.big{font-size:17px; font-weight:800; color:var(--primary)}
+.card.mystery p.formula{font-size:15.5px; background:var(--panel); border:1.5px dashed var(--accent); border-radius:10px; padding:8px 12px; text-align:center}
+.hints{display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start} .hints .note{grid-column:1 / -1; min-height:0; margin-top:0}
+@media (max-width:620px){ .hints{grid-template-columns:1fr} }
+.simbtn{display:inline-block; margin-top:4px; background:var(--primary); color:#fff; font-weight:800; text-decoration:none; border-radius:10px; padding:9px 16px}
+[data-theme="dark"] .simbtn{color:#12181f}
 </style>
 </head>
 <body>
@@ -153,7 +162,9 @@ table.res .m{font-size:1.02em}
 
     <div class="card">
       <h3>שלב 1 · קריאה, כחצי שעה</h3>
-      <p>מתוך <b>הרצאה 3 מכימיה 1, תרמוכימיה</b>, רק השקפים האלה:</p>
+      <p>קראו את <b>דף הקריאה</b>, שלושה עמודים: עבודה, חום, החוק הראשון, האנתלפיה ותזכורת קצרה על אנטרופיה.</p>
+      <a class="simbtn" href="reading_pv.pdf" target="_blank" rel="noopener">📄 לדף הקריאה</a>
+      <p class="tiny" style="margin-top:10px">מי שיש לו את המצגת של הרצאה 3 מכימיה 1, תרמוכימיה — הדף מבוסס על השקפים האלה:</p>
       <ul class="steps">
         <li><span class="pill">23–28</span> עבודת לחץ-נפח, הפיך מול בלתי הפיך (המשקולות), פונקציית מצב</li>
         <li><span class="pill">31</span> יחידות של עבודה: מ-bar·L לג׳ול</li>
@@ -176,7 +187,7 @@ table.res .m{font-size:1.02em}
       <h3>מה מביאים לשיעור ביום רביעי, 4.11</h3>
       <ul class="steps">
         <li>את הטבלה של תחנה ב׳, במחברת: <span class="m">W, Q, ΔU, ΔH, ΔS</span> לכל אחד משני המסלולים.</li>
-        <li>מספר אחד מתחנה ג׳: כמה עבודה עשה הגז בסיבוב אחד.</li>
+        <li>מתחנה ג׳: כמה עבודה עשה הגז בסיבוב אחד, ו<b>המספר המסתורי</b>: היעילות של המעגל באחוזים. הסימולציה לא תגיד לכם אותו. מחשבים לבד, ואת התשובה אגלה בשיעור.</li>
         <li>משפט אחד: אם <span class="m">ΔU = 0</span> על המעגל, למה העבודה לא אפס? ומה זה אומר על העבודה?</li>
         <li>ואת המספרים של משימת המולים, אם עוד לא עשיתם אותה.</li>
       </ul>
@@ -254,6 +265,19 @@ table.res .m{font-size:1.02em}
         <button class="resetb" id="c-ans">— הראו לי כיוון</button>
         <div class="note" id="c-anstxt" style="display:none"></div>
       </div>
+    </div>
+  </div>
+  <div class="card mystery" style="margin-top:12px">
+    <h3>★ המספר המסתורי <span class="hint">· את זה הסימולציה לא תגיד לכם</span></h3>
+    <p>המעגל שסובבתם הוא <b>מנוע</b>: הוא חוזר בכל סיבוב לאותו מצב, ובדרך מוציא עבודה. מנוע טוב מנצל חלק גדול מהחום שמכניסים לו. אז השאלה היא:</p>
+    <p class="big">איזה חלק מהחום <b>שנכנס</b> לגז בסיבוב אחד יצא ממנו בתור עבודה?</p>
+    <p class="formula"><b>היעילות</b> = העבודה שהגז עשה <span class="m">÷</span> החום שנכנס לגז</p>
+    <p>חשבו באחוזים, כתבו במחברת, ותביאו לשיעור ב-4.11. אני אגיד לכם בשיעור מה יצא, ומה המספר הזה מסתיר.</p>
+    <div class="hints">
+      <button class="resetb" id="c-h1">רמז ראשון</button>
+      <div class="note" id="c-h1t" style="display:none">החום במעגל שהסימולציה מציגה, <span class="m">+576 J</span>, הוא חום <b>נטו</b>: כל מה שנכנס פחות כל מה שיצא. אבל השאלה היא רק על החום שנכנס. מי שיחלק 576 ב-576 ויקבל מאה אחוז — בנה מנוע שאי אפשר לבנות.</div>
+      <button class="resetb" id="c-h2">רמז שני</button>
+      <div class="note" id="c-h2t" style="display:none">למעגל ארבעה שלבים: <span class="m">A1</span>, <span class="m">A2</span>, ואז <span class="m">B2</span> ו-<span class="m">B1</span> בכיוון ההפוך. כשהולכים במסלול אחורה, <span class="m">Q</span> ו-<span class="m">W</span> של כל שלב מחליפים סימן. את כל המספרים יש בטבלה של תחנה ב׳. באילו שלבים <span class="m">Q &gt; 0</span>?</div>
     </div>
   </div>
 </div>
@@ -581,7 +605,7 @@ function drawC(){
   const R=[ ['השינוי בנפח · '+M('L'), SC.done?'0.00':'?', ''], ['השינוי ב-'+M('U')+' · '+M('J'), SC.done?'0':'?', 'green'], ['השינוי ב-'+M('H')+' · '+M('J'), SC.done?'0':'?', 'green'], ['השינוי ב-'+M('S')+' · '+M('J/K'), SC.done?'0.00':'?', 'green'],
             ['העבודה על הגז, '+M('W')+' · '+M('J'), SC.done?fmtS(a.W-b.W,0):'?', 'warn'], ['החום, '+M('Q')+' · '+M('J'), SC.done?'+'+fmtS(a.Q-b.Q,0):'?', 'acc'] ];
   $('c-reads').innerHTML=R.map(r=>'<div class="rd '+r[2]+'"><div class="t">'+r[0]+'</div><div class="n">'+r[1]+'</div></div>').join('');
-  if(SC.done) $('c-note').innerHTML='הגז חזר לנקודה 1, ולכן כל פונקציות המצב חזרו לעצמן: <span class="m">∮ΔU = ∮ΔH = ∮ΔS = 0</span>. אבל <span class="m">W = 898 − 1474 = −576 J</span>. מינוס — זאת אומרת שהגז עשה 576 ג׳ול עבודה על הסביבה בכל סיבוב, ושילם עליהם ב-576 ג׳ול של חום שנכנס. <b>זה המספר שמביאים לשיעור.</b>';
+  if(SC.done) $('c-note').innerHTML='הגז חזר לנקודה 1, ולכן כל פונקציות המצב חזרו לעצמן: <span class="m">∮ΔU = ∮ΔH = ∮ΔS = 0</span>. אבל <span class="m">W = 898 − 1474 = −576 J</span>. מינוס — זאת אומרת שהגז עשה 576 ג׳ול עבודה על הסביבה בכל סיבוב, ובסך הכול נכנסו אליו 576 ג׳ול חום נטו. <b>זה המספר שמביאים לשיעור.</b>';
 }
 function cRun(){
   if(SC.anim) cancelAnimationFrame(SC.anim);
@@ -623,6 +647,7 @@ $('b-adi').addEventListener('click',function(){ SB.adi=!SB.adi; this.setAttribut
   $('b-adnote').innerHTML='הקו המנוקד יוצא מנקודה 1 בלי שום חום: <span class="m">Q = 0</span>. הוא תלול יותר מהאיזותרמה של 300 K. כשדוחסים גז מבודד, כל העבודה נכנסת ל-<span class="m">U</span> והוא מתחמם — ולכן הלחץ עולה מהר יותר. את המשוואה שלו, <span class="m">pV<sup>5/3</sup></span> קבוע, נפתח ביחידה 5. בינתיים — רק להסתכל.';
   drawB(); });
 $('c-go').addEventListener('click',cRun);
+['c-h1','c-h2'].forEach(id=>$(id).addEventListener('click',function(){ const t=$(id+'t'), on=t.style.display==='block'; t.style.display=on?'none':'block'; this.textContent=(id==='c-h1'?'רמז ראשון':'רמז שני')+(on?'':' · הסתר'); }));
 $('c-ans').addEventListener('click',function(){ const on=$('c-anstxt').style.display==='block'; $('c-anstxt').style.display=on?'none':'block'; this.textContent=on?'— הראו לי כיוון':'הסתר';
   $('c-anstxt').innerHTML='כי <span class="m">W</span> איננה פונקציית מצב. היא תלויה בדרך, ולכן על מעגל סגור היא לא חייבת להתאפס — בניגוד ל-<span class="m">U</span>, <span class="m">V</span> או <span class="m">S</span>. ובזכות זה בדיוק יש מנועים: מכונה שחוזרת לאותו מצב ובדרך מוציאה עבודה. במפגש הראשון נראה מבחן מתמטי בן שורה אחת שמבדיל בין שני הסוגים — והוא יגיד לכם את זה עוד לפני שמסובבים מעגל.'; });
 aPick(0);

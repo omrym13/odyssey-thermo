@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מסע במישור p–V · משימת רענון</title>
+<style>
+:root{
+  --bg:#FBF8F1; --panel:#FFFFFF; --primary:#1F4E79; --accent:#2A9D8F; --accentdk:#1E7A6E;
+  --gold:#D9A441; --goldtx:#8A6414; --warn:#C0553A; --sky:#7B9ACC; --green:#2E6F40;
+  --ink:#1A1A1A; --muted:#6B7280; --line:#DDE3EC; --soft:#EEF2FA;
+}
+[data-theme="dark"]{
+  --bg:#12181f; --panel:#182029; --primary:#8FC1E8; --accent:#5FD0C0; --accentdk:#7FE0D0;
+  --gold:#E7C455; --goldtx:#E7C455; --warn:#E8886B; --sky:#9DB6E0; --green:#6FBF83;
+  --ink:#E9EEF4; --muted:#9AA7B4; --line:#2B3644; --soft:#1e2833;
+}
+*{box-sizing:border-box}
+html,body{margin:0; padding:0}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 "Heebo",system-ui,-apple-system,sans-serif;
+  padding:12px clamp(10px,2.5vw,28px) 40px; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+header.top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+header.top h1{font-size:clamp(18px,2.4vw,25px); margin:0; color:var(--primary); font-weight:900}
+header.top .sub{color:var(--muted); font-size:13.5px}
+header.top .sp{flex:1}
+button{font:inherit; cursor:pointer}
+.ghost{background:var(--panel); color:var(--ink); border:1.5px solid var(--line);
+  border-radius:9px; padding:7px 13px; font-weight:700; min-height:38px}
+.ghost:hover{border-color:var(--primary)}
+.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; border-bottom:2px solid var(--line); padding-bottom:8px}
+.tabs button{background:transparent; color:var(--muted); border:none; border-bottom:3px solid transparent;
+  padding:8px 12px; min-height:44px; font-weight:800; font-size:14px; border-radius:6px 6px 0 0}
+.tabs button .k{display:inline-block; background:var(--line); color:var(--ink); border-radius:999px;
+  padding:1px 9px; margin-inline-end:6px; font-size:12.5px}
+.tabs button[aria-selected="true"]{color:var(--primary); border-bottom-color:var(--gold)}
+.tabs button[aria-selected="true"] .k{background:var(--gold); color:#2f2607}
+.tabs button.game{color:var(--accentdk)}
+.pane{display:none}
+.pane.on{display:block}
+.fnbar{background:var(--panel); border:1.5px solid var(--line); border-right:6px solid var(--primary);
+  border-radius:14px; padding:11px 16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.fnbar .lab{font-size:13px; font-weight:800; color:var(--muted); white-space:nowrap}
+.fnbar .expr{flex:1; text-align:center; direction:ltr; unicode-bidi:isolate;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(18px,2.6vw,27px); font-weight:700; color:var(--primary); line-height:1.35}
+.wrap{display:grid; grid-template-columns:minmax(0,1.55fr) minmax(285px,1fr);
+  gap:clamp(10px,1.8vw,20px); align-items:start}
+@media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+.card{background:var(--panel); border:1.5px solid var(--line); border-radius:14px; padding:12px 14px}
+.card h3{margin:0 0 8px; font-size:15px; color:var(--primary); font-weight:800}
+.card h3 .hint{font-weight:600; color:var(--muted); font-size:12.5px}
+/* גובה קבוע ב-CSS — חובה. בלעדיו הקנבס מכפיל את עצמו בכל ציור מחדש. */
+canvas{width:100%; height:clamp(320px,52vh,460px); display:block; border-radius:10px; touch-action:none}
+@media (max-width:900px){ canvas{height:clamp(300px,48vh,400px)} }
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
+.chips button{font-weight:700; font-size:13.5px; min-height:40px; background:var(--panel);
+  color:var(--ink); border:1.5px solid var(--line); border-radius:9px; padding:6px 11px;
+  direction:ltr; font-family:"STIX Two Math",Georgia,serif}
+.chips button[aria-pressed="true"]{background:var(--primary); color:#fff; border-color:var(--primary)}
+[data-theme="dark"] .chips button[aria-pressed="true"]{color:#12181f}
+.seg{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
+.seg button{flex:1; min-height:42px; border-radius:9px; border:1.6px solid var(--line); background:var(--panel);
+  color:var(--muted); font-weight:800; font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.ctl{margin:10px 0}
+.ctl label{display:flex; justify-content:space-between; align-items:baseline; font-weight:800; font-size:14px; color:var(--primary)}
+.ctl label .v{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-weight:700; color:var(--warn); font-size:15px}
+.ctl input[type=range]{width:100%; margin-top:4px; accent-color:var(--primary); height:30px}
+.reads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+.rd{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:7px 10px}
+.rd .t{font-size:12px; color:var(--muted); font-weight:700}
+.rd .n{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-size:clamp(16px,1.9vw,21px); font-weight:800; color:var(--primary); line-height:1.3}
+.rd.gold{background:color-mix(in srgb, var(--gold) 16%, var(--panel)); border-color:var(--gold)}
+.rd.gold .n{color:var(--goldtx)}
+.rd.warn .n{color:var(--warn)} .rd.green .n{color:var(--green)} .rd.acc .n{color:var(--accentdk)}
+.rd.wide{grid-column:1 / -1}
+.bigbtn{width:100%; margin-top:9px; min-height:46px; border-radius:11px; font-weight:800;
+  font-size:15px; border:2px solid var(--gold); background:var(--gold); color:#3a2f08}
+.resetb{width:100%; margin-top:7px; min-height:40px; border-radius:10px; font-weight:700;
+  border:1.5px dashed var(--line); background:transparent; color:var(--muted)}
+.note{margin-top:11px; background:color-mix(in srgb, var(--primary) 6%, var(--panel));
+  border-right:4px solid var(--primary); border-radius:9px; padding:9px 12px; font-size:13.5px;
+  line-height:1.65; min-height:70px}
+.note b{color:var(--primary)}
+.note .m, .m{direction:ltr; unicode-bidi:isolate; display:inline-block; font-family:"STIX Two Math",Georgia,serif; font-size:1.06em}
+.verdict{margin-top:8px; border-radius:10px; padding:9px 12px; font-weight:800; text-align:center; font-size:15px}
+.verdict.ok{background:color-mix(in srgb, var(--green) 14%, var(--panel)); color:var(--green); border:1.5px solid var(--green)}
+.verdict.bad{background:color-mix(in srgb, var(--warn) 12%, var(--panel)); color:var(--warn); border:1.5px solid var(--warn)}
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12.5px; color:var(--muted)}
+.legend i{display:inline-block; width:15px; height:9px; border-radius:2px; vertical-align:middle; margin-inline-end:5px}
+.foot{margin-top:14px; font-size:12.5px; color:var(--muted); text-align:center}
+.num{display:flex; align-items:center; gap:10px; margin:6px 0 10px}
+.num input{width:90px; font:inherit; font-size:18px; font-weight:800; padding:6px 10px; border:2px solid var(--primary);
+  border-radius:9px; direction:ltr; text-align:center; background:var(--panel); color:var(--ink)}
+.num label{font-weight:800; color:var(--primary)}
+textarea{width:100%; min-height:150px; font:13px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr;
+  border:1.5px solid var(--line); border-radius:10px; padding:8px; background:var(--bg); color:var(--ink); margin-top:8px}
+.station{display:none} .station.on{display:block}
+.pill{direction:ltr; unicode-bidi:isolate; display:inline-block; background:var(--soft); color:var(--primary); border-radius:999px; padding:2px 10px; font-weight:800; font-size:12.5px}
+.bigbtn.alt{background:var(--accent); border-color:var(--accent); color:#fff}
+.seg.col{flex-direction:column} .seg.col button{flex:none; text-align:right}
+.rd .t sub, .fnbar sub{font-size:0.75em}
+.hint2{font-size:12.5px; color:var(--muted); font-weight:700; margin-top:10px}
+#a-speed{margin-top:8px}
+@media (max-width:620px){ #cv-a{height:calc(56vw + 74px)} }
+.bigbtn.alt{background:var(--accent); border-color:var(--accent); color:#fff}
+.seg.col{flex-direction:column} .seg.col button{flex:none; text-align:right; padding:8px 12px; line-height:1.45}
+.hint2{font-size:12.5px; color:var(--muted); font-weight:700; margin-top:10px}
+.intro{display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:1100px}
+@media (max-width:900px){ .intro{grid-template-columns:1fr} }
+.intro p{margin:0 0 8px; line-height:1.7}
+.tiny{font-size:13px; color:var(--muted)}
+.steps{margin:4px 0 6px; padding-inline-start:20px; line-height:1.75}
+.steps li{margin-bottom:5px}
+.card.gold{border-color:var(--gold); background:color-mix(in srgb, var(--gold) 9%, var(--panel))}
+.fnbar .chips{flex:1}
+.tblwrap{overflow-x:auto}
+table.res{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+table.res th{background:var(--soft); color:var(--primary); font-weight:800; padding:7px 8px; border-bottom:2px solid var(--line)}
+table.res td{padding:6px 8px; border-bottom:1px solid var(--line); text-align:center}
+table.res td.lb{text-align:right; font-weight:700; white-space:nowrap}
+table.res td.q{color:var(--muted); font-weight:800}
+table.res tr.lg-A td.lb{border-right:5px solid var(--accent)} table.res tr.lg-B td.lb{border-right:5px solid var(--gold)}
+table.res tr.tot td{font-weight:900; background:color-mix(in srgb, var(--primary) 6%, var(--panel)); border-bottom:2px solid var(--line)}
+table.res .m{font-size:1.02em}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>מסע במישור p–V</h1>
+  <span class="sub">משימת רענון לפני המפגש הראשון · מה שכבר ידעתם מכימיה 1, ומה שנבנה עליו עכשיו</span>
+  <span class="sp"></span>
+  <button class="ghost" id="themeb">מצב כהה</button>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" data-tab="o" aria-selected="true"><span class="k">0</span>המשימה</button>
+  <button role="tab" data-tab="a" aria-selected="false"><span class="k">א</span>תנחשו ואז תראו</button>
+  <button role="tab" data-tab="b" aria-selected="false"><span class="k">ב</span>שני מסלולים</button>
+  <button role="tab" data-tab="c" aria-selected="false"><span class="k">ג</span>סוגרים מעגל</button>
+</div>
+
+<!-- ============ 0 המשימה ============ -->
+<div class="pane on" id="pane-o">
+  <div class="intro">
+    <div class="card">
+      <h3>למה המשימה הזו</h3>
+      <p>השיעור של 28.10 בוטל, וקיבלנו שבוע. אז נשתמש בו כדי להסיר חלודה. בכימיה 1 ראיתם עבודה, חום, החוק הראשון ופונקציות מצב. בשבועיים הקרובים אנחנו בונים לכל זה את המתמטיקה. המשימה הזו מחזירה לכם את התמונה לפני שמגיעה המתמטיקה, כדי שכשנגיע אליה, תדעו בדיוק מה היא מוכיחה.</p>
+      <p class="tiny">בערך שעה ורבע בסך הכול. אין הגשה ואין ציון.</p>
+    </div>
+
+    <div class="card">
+      <h3>שלב 1 · קריאה, כחצי שעה</h3>
+      <p>מתוך <b>הרצאה 3 מכימיה 1, תרמוכימיה</b>, רק השקפים האלה:</p>
+      <ul class="steps">
+        <li><span class="pill">23–28</span> עבודת לחץ-נפח, הפיך מול בלתי הפיך (המשקולות), פונקציית מצב</li>
+        <li><span class="pill">31</span> יחידות של עבודה: מ-bar·L לג׳ול</li>
+        <li><span class="pill">34–35</span> האנרגיה הפנימית והחוק הראשון</li>
+        <li><span class="pill">37–39</span> פונקציות מצב, נפח קבוע מול לחץ קבוע, האנתלפיה</li>
+      </ul>
+      <p class="tiny">את הקלורימטריה, חוק הס וקירכהוף אפשר לדלג. הם יחזרו בהמשך הסמסטר.</p>
+    </div>
+
+    <div class="card">
+      <h3>שלב 2 · הסימולציה, כ-40 דקות</h3>
+      <ul class="steps">
+        <li><b>א · תנחשו ואז תראו.</b> שישה גרפים. בכל אחד: קודם משרטטים ניחוש באצבע או בעכבר, ורק אז לוחצים ״חשוף״. מי שלא מנחש לפני — מפספס את כל העניין.</li>
+        <li><b>ב · שני מסלולים.</b> מול אחד של ארגון עובר מאותה נקודה לאותה נקודה, בשתי דרכים. ממלאים את הטבלה.</li>
+        <li><b>ג · סוגרים מעגל.</b> הולכים במסלול אחד קדימה ובשני אחורה. מה נשאר?</li>
+      </ul>
+    </div>
+
+    <div class="card gold">
+      <h3>מה מביאים לשיעור ביום רביעי, 4.11</h3>
+      <ul class="steps">
+        <li>את הטבלה של תחנה ב׳, במחברת: <span class="m">W, Q, ΔU, ΔH, ΔS</span> לכל אחד משני המסלולים.</li>
+        <li>מספר אחד מתחנה ג׳: כמה עבודה עשה הגז בסיבוב אחד.</li>
+        <li>משפט אחד: אם <span class="m">ΔU = 0</span> על המעגל, למה העבודה לא אפס? ומה זה אומר על העבודה?</li>
+        <li>ואת המספרים של משימת המולים, אם עוד לא עשיתם אותה.</li>
+      </ul>
+      <p class="tiny">המוסכמה של הקורס: <span class="m">W</span> היא העבודה שנעשית <b>על</b> הגז, חיובית בדחיסה. ולכן <span class="m">ΔU = Q + W</span>.</p>
+      <button class="bigbtn" id="o-go">מתחילים — לתחנה א׳</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ א תנחשו ואז תראו ============ -->
+<div class="pane" id="pane-a">
+  <div class="fnbar"><span class="lab">גרף</span><div class="chips" id="a-chips" style="margin:0"></div></div>
+  <div class="wrap">
+    <div class="card">
+      <h3 id="a-title">—</h3>
+      <canvas id="cv-a"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>הניחוש שלכם</span><span><i style="background:var(--primary)"></i>התשובה</span><span id="a-leg2" style="display:none"><i style="background:var(--warn)"></i><span id="a-leg2t"></span></span></div>
+    </div>
+    <div class="card">
+      <h3>השאלה</h3>
+      <div class="note" id="a-q">—</div>
+      <p class="hint2">גררו על הגרף כדי לשרטט את הניחוש. אפשר כמה קווים.</p>
+      <button class="bigbtn" id="a-reveal">חשוף את התשובה</button>
+      <button class="resetb" id="a-clear">נקה את הניחוש</button>
+      <div class="note" id="a-ans" style="display:none"></div>
+      <button class="bigbtn alt" id="a-next" style="display:none">לגרף הבא</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ב שני מסלולים ============ -->
+<div class="pane" id="pane-b">
+  <div class="fnbar"><span class="lab">מול אחד של ארגון, גז אידיאלי חד-אטומי · <span class="m">C<sub>V</sub> = 3R/2</span></span><span class="expr">(300 K, 1 bar) → (400 K, 2 bar)</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>מישור p–V <span class="hint">· השטח הצבוע = העבודה. כחול — עבודה על הגז, חמרה — עבודה של הגז</span></h3>
+      <canvas id="cv-b"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>מסלול A</span><span><i style="background:var(--gold)"></i>מסלול B</span><span><i style="background:var(--muted)"></i>איזותרמות 300 K ו-400 K</span><span id="b-adleg" style="display:none"><i style="background:var(--warn)"></i>אדיאבט מ-1</span></div>
+    </div>
+    <div class="card">
+      <h3>בחרו מסלול</h3>
+      <div class="seg col" id="b-path">
+        <button data-p="A" aria-pressed="true">A · קודם דוחסים ב-<span class="m">300 K</span>, אחר כך מחממים ב-<span class="m">2 bar</span></button>
+        <button data-p="B" aria-pressed="false">B · קודם מחממים ב-<span class="m">1 bar</span>, אחר כך דוחסים ב-<span class="m">400 K</span></button>
+      </div>
+      <button class="bigbtn" id="b-go">הפעילו את המסלול</button>
+      <div class="note" id="b-note">לפני שאתם לוחצים: נחשו במחברת איזה מהגדלים בטבלה ייצא <b>זהה</b> בשני המסלולים.</div>
+      <button class="ghost" id="b-adi" aria-pressed="false" style="width:100%; margin-top:10px">ומה אם הקיר מבודד? · הצצה</button>
+      <div class="note" id="b-adnote" style="display:none"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>הטבלה <span class="hint">· בג׳ול, ו-ΔS בג׳ול לקלווין. מתמלאת תוך כדי מסלול</span></h3>
+    <div class="tblwrap"><table class="res" id="b-table"></table></div>
+  </div>
+</div>
+
+<!-- ============ ג סוגרים מעגל ============ -->
+<div class="pane" id="pane-c">
+  <div class="fnbar"><span class="lab">מסלול A קדימה, מסלול B אחורה</span><span class="expr">1 → 2 → 1</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>המעגל <span class="hint">· השטח הכלוא בתוך המעגל</span></h3>
+      <canvas id="cv-c"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>A קדימה</span><span><i style="background:var(--gold)"></i>B אחורה</span><span><i style="background:var(--warn)"></i>השטח הכלוא</span></div>
+    </div>
+    <div class="card">
+      <h3>סיבוב אחד</h3>
+      <button class="bigbtn" id="c-go">סובבו את המעגל</button>
+      <div class="reads" id="c-reads"></div>
+      <div class="note" id="c-note">הגז חוזר בדיוק לנקודה שממנה יצא. לפני שאתם מסובבים: מה יהיה <span class="m">ΔU</span> על המעגל? ומה <span class="m">W</span>?</div>
+      <div class="card gold" style="margin-top:10px">
+        <h3>השאלה שמביאים לשיעור</h3>
+        <p style="margin:0">אם <span class="m">ΔU = 0</span> על המעגל, למה <span class="m">W</span> לא אפס? ומה זה אומר על <span class="m">W</span>? כתבו משפט אחד במחברת, ורק אז —</p>
+        <button class="resetb" id="c-ans">— הראו לי כיוון</button>
+        <div class="note" id="c-anstxt" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">תרמודינמיקה לכימאים · אודיסיאה שנה ב׳ · ד״ר עומרי מורג · כל המספרים מחושבים ב-R = 8.314 J/(mol·K)</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const R_GAS = 8.314;
+function setupCanvas(canvas){
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(10, Math.floor(rect.width)), cssH = Math.max(10, Math.floor(rect.height));
+  if(rect.width < 2 || rect.height < 2) return null; /* לשונית מוסתרת */
+  if(canvas.width !== Math.round(cssW*dpr) || canvas.height !== Math.round(cssH*dpr)){ canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr); }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+  return { ctx, w:cssW, h:cssH };
+}
+/* עברית ומספרים לעולם לא באותה מחרוזת; הכיוון נקבע במפורש בכל fillText */
+function heT(ctx,t,x,y,a){ ctx.save(); ctx.direction='rtl'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function ltrT(ctx,t,x,y,a){ ctx.save(); ctx.direction='ltr'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function fmt(v,d){ if(!Number.isFinite(v)) return '—'; return v.toFixed(d===undefined?3:d); }
+function fmtS(v,d){ if(!Number.isFinite(v)) return '—'; const s=Math.abs(v).toFixed(d===undefined?3:d); return (v<0 && +s!==0?'-':'')+s; }
+function niceTicks(a,b,px,per){
+  const n=Math.max(2, Math.floor(px/per)); const raw=(b-a)/n;
+  const p=Math.pow(10,Math.floor(Math.log10(raw))); const m=raw/p;
+  const step=(m<1.5?1:m<3.5?2:m<7.5?5:10)*p;
+  const out=[]; for(let t=Math.ceil(a/step-1e-9)*step; t<=b+1e-9; t+=step) out.push(+t.toFixed(10));
+  return out;
+}
+function plot(x0,x1,y0,y1,xr,yr){
+  return { x0,x1,y0,y1, X:x=>x0+(x-xr[0])/(xr[1]-xr[0])*(x1-x0), Y:y=>y0-(y-yr[0])/(yr[1]-yr[0])*(y0-y1),
+           invX:px=>xr[0]+(px-x0)/(x1-x0)*(xr[1]-xr[0]), invY:py=>yr[0]+(y0-py)/(y0-y1)*(yr[1]-yr[0]) };
+}
+function frame(ctx,P,xr,yr,opt){
+  opt=opt||{};
+  ctx.save();
+  ctx.textBaseline='middle'; ctx.font='700 11.5px Heebo, system-ui, sans-serif';
+  ctx.strokeStyle=css('--line'); ctx.lineWidth=1; ctx.beginPath();
+  const xt=niceTicks(xr[0],xr[1],P.x1-P.x0,70), yt=niceTicks(yr[0],yr[1],P.y0-P.y1,50);
+  for(const t of xt){ ctx.moveTo(P.X(t),P.y1); ctx.lineTo(P.X(t),P.y0); }
+  for(const t of yt){ ctx.moveTo(P.x0,P.Y(t)); ctx.lineTo(P.x1,P.Y(t)); }
+  ctx.stroke();
+  ctx.strokeStyle=css('--muted'); ctx.lineWidth=1.2; ctx.strokeRect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1);
+  ctx.fillStyle=css('--muted');
+  for(const t of xt){ ltrT(ctx, opt.xfmt?opt.xfmt(t):String(t), P.X(t), P.y0+11); }
+  for(const t of yt){ ltrT(ctx, opt.yfmt?opt.yfmt(t):String(t), P.x0-5, P.Y(t), 'right'); }
+  ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif';
+  if(opt.xlab) ltrT(ctx,opt.xlab,(P.x0+P.x1)/2,P.y0+26);
+  if(opt.ylab){ ctx.save(); ctx.translate(P.x0-34,(P.y0+P.y1)/2); ctx.rotate(-Math.PI/2); ltrT(ctx,opt.ylab,0,0); ctx.restore(); }
+  if(opt.title){ ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif'; heT(ctx,opt.title,(P.x0+P.x1)/2,P.y1-11); }
+  ctx.restore();
+}
+/* מפת צבע: ערך בין -1 ל-1 → תכלת..אפור..חמרה */
+function divColor(t){
+  t=Math.max(-1,Math.min(1,t));
+  const g=[200,200,200], w=[192,85,58], s=[123,154,204];
+  const c = t>=0 ? g.map((v,i)=>v+(w[i]-v)*t) : g.map((v,i)=>v+(s[i]-v)*(-t));
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+/* מפת גובה: ערך 0..1 → שמנת..כחול */
+function heightColor(t){
+  t=Math.max(0,Math.min(1,t));
+  const a=[251,248,241], b=[31,78,121];
+  const c=a.map((v,i)=>v+(b[i]-v)*t);
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+function colorMap(ctx,P,xr,yr,fn,scaleFn,nx,ny){
+  nx=nx||60; ny=ny||45;
+  const cw=(P.x1-P.x0)/nx, ch=(P.y0-P.y1)/ny;
+  for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+    const x=xr[0]+(i+0.5)/nx*(xr[1]-xr[0]), y=yr[0]+(j+0.5)/ny*(yr[1]-yr[0]);
+    const v=fn(x,y); if(!Number.isFinite(v)) continue;
+    ctx.fillStyle=scaleFn(v); ctx.fillRect(P.x0+i*cw, P.y0-(j+1)*ch, cw+0.6, ch+0.6);
+  }
+}
+/* קווי גובה בשיטת ריבועים צועדים — פשוטה ומספיקה */
+function contours(ctx,P,xr,yr,fn,levels,color,nx,ny){
+  nx=nx||70; ny=ny||52;
+  const g=[]; for(let i=0;i<=nx;i++){ g.push([]); for(let j=0;j<=ny;j++){ g[i].push(fn(xr[0]+i/nx*(xr[1]-xr[0]), yr[0]+j/ny*(yr[1]-yr[0]))); } }
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.1; ctx.beginPath();
+  const px=(i)=>P.X(xr[0]+i/nx*(xr[1]-xr[0])), py=(j)=>P.Y(yr[0]+j/ny*(yr[1]-yr[0]));
+  for(const L of levels){
+    for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+      const v=[g[i][j],g[i+1][j],g[i+1][j+1],g[i][j+1]]; if(v.some(t=>!Number.isFinite(t))) continue;
+      const pts=[];
+      const edge=(a,b,xa,ya,xb,yb)=>{ if((a-L)*(b-L)<0){ const t=(L-a)/(b-a); pts.push([xa+(xb-xa)*t, ya+(yb-ya)*t]); } };
+      edge(v[0],v[1],px(i),py(j),px(i+1),py(j)); edge(v[1],v[2],px(i+1),py(j),px(i+1),py(j+1));
+      edge(v[2],v[3],px(i+1),py(j+1),px(i),py(j+1)); edge(v[3],v[0],px(i),py(j+1),px(i),py(j));
+      if(pts.length>=2){ ctx.moveTo(pts[0][0],pts[0][1]); ctx.lineTo(pts[1][0],pts[1][1]); if(pts.length===4){ ctx.moveTo(pts[2][0],pts[2][1]); ctx.lineTo(pts[3][0],pts[3][1]); } }
+    }
+  }
+  ctx.stroke(); ctx.restore();
+}
+function minmax(fn,xr,yr,n){ n=n||40; let lo=Infinity,hi=-Infinity; for(let i=0;i<=n;i++) for(let j=0;j<=n;j++){ const v=fn(xr[0]+i/n*(xr[1]-xr[0]), yr[0]+j/n*(yr[1]-yr[0])); if(Number.isFinite(v)){ lo=Math.min(lo,v); hi=Math.max(hi,v);} } if(!(hi>lo)){hi=lo+1;} return [lo,hi]; }
+function dot(ctx,x,y,r,color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); }
+function arrow(ctx,x0,y0,x1,y1,color,w){ ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=w||2.4; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0), L=8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-L*Math.cos(a-0.45),y1-L*Math.sin(a-0.45)); ctx.lineTo(x1-L*Math.cos(a+0.45),y1-L*Math.sin(a+0.45)); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function simpson(f,a,b,n){ n=n||400; if(n%2)n++; const h=(b-a)/n; let s=f(a)+f(b); for(let i=1;i<n;i++){ s+=f(a+i*h)*(i%2?4:2); } return s*h/3; }
+/* גרירה על קנבס: מחזיר קואורדינטות CSS */
+function dragOn(canvas, onmove){
+  let down=false;
+  const pos=e=>{ const r=canvas.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [t.clientX-r.left, t.clientY-r.top]; };
+  canvas.addEventListener('pointerdown',e=>{ down=true; canvas.setPointerCapture(e.pointerId); onmove(...pos(e)); });
+  canvas.addEventListener('pointermove',e=>{ if(down) onmove(...pos(e)); });
+  canvas.addEventListener('pointerup',()=>{down=false;}); canvas.addEventListener('pointercancel',()=>{down=false;});
+}
+
+/* ============================================================
+   הפיזיקה: מול אחד של ארגון, גז אידיאלי חד-אטומי
+   ============================================================ */
+const nMol=1, CV=1.5*R_GAS, CP=2.5*R_GAS;
+const T1=300, T2=400, P1=1, P2=2;               /* K, bar */
+const Vof=(T,p)=>nMol*R_GAS*T/(p*1e5)*1e3;      /* ליטר */
+const pof=(T,V)=>nMol*R_GAS*T/(V*1e-3)/1e5;     /* bar */
+/* עיגול "חצי-לזוגי" — כדי ש-2078.5 יוצג 2078, והסכומים בטבלה יתאימו לחוק הראשון */
+function rnd(x){ const f=Math.floor(x), d=x-f; if(Math.abs(d-0.5)<1e-9) return (f%2===0)?f:f+1; return Math.round(x); }
+function rnd2(x){ return rnd(x*100)/100; }
+/* שלב: iso = איזותרמי (T קבוע, p משתנה), bar = איזוברי (p קבוע, T משתנה) */
+function leg(kind,a,b,fix){
+  if(kind==='iso'){ const T=fix, Va=Vof(T,a), Vb=Vof(T,b);
+    const W=-nMol*R_GAS*T*Math.log(Vb/Va);
+    return {kind,T,pa:a,pb:b,Va,Vb, W:rnd(W), dU:0, Q:rnd(-W), dH:0, dS:rnd2(nMol*R_GAS*Math.log(Vb/Va))}; }
+  const p=fix, Va=Vof(a,p), Vb=Vof(b,p);
+  return {kind,p,Ta:a,Tb:b,Va,Vb, W:rnd(-nMol*R_GAS*(b-a)), dU:rnd(nMol*CV*(b-a)), Q:rnd(nMol*CP*(b-a)), dH:rnd(nMol*CP*(b-a)), dS:rnd2(nMol*CP*Math.log(b/a))};
+}
+const PATHS={
+  A:{name:'A', color:'--accent', legs:[ {lab:'A1 · איזותרמי ב-', fx:'300 K', ...leg('iso',P1,P2,T1)}, {lab:'A2 · איזוברי ב-', fx:'2 bar', ...leg('bar',T1,T2,P2)} ]},
+  B:{name:'B', color:'--gold',   legs:[ {lab:'B1 · איזוברי ב-', fx:'1 bar', ...leg('bar',T1,T2,P1)}, {lab:'B2 · איזותרמי ב-', fx:'400 K', ...leg('iso',P1,P2,T2)} ]}
+};
+const KEYS=['W','Q','dU','dH','dS'];
+function total(path){ const o={}; for(const k of KEYS){ o[k]=path.legs.reduce((s,L)=>s+L[k],0); if(k==='dS') o[k]=rnd2(o[k]); } return o; }
+/* נקודה על שלב לפי פרמטר u∈[0,1] */
+function legPt(L,u){
+  if(L.kind==='iso'){ const V=L.Va*Math.pow(L.Vb/L.Va,u); return [V,pof(L.T,V)]; }
+  const V=L.Va+(L.Vb-L.Va)*u; return [V,L.p];
+}
+/* בדיקות עקביות — רצות פעם אחת, נכשלות בקול בקונסול */
+(function selfTest(){
+  const a=total(PATHS.A), b=total(PATHS.B);
+  const bad=[];
+  if(a.W!==898) bad.push('W_A='+a.W); if(b.W!==1474) bad.push('W_B='+b.W);
+  for(const t of [a,b]){ if(t.Q+t.W!==t.dU) bad.push('first law '+t.Q+'+'+t.W+'!='+t.dU); }
+  if(a.dU!==b.dU||a.dH!==b.dH||a.dS!==b.dS) bad.push('state functions differ');
+  if(bad.length) console.error('selfTest', bad);
+})();
+
+/* ============================================================
+   א · תנחשו ואז תראו
+   ============================================================ */
+const S0_AR=154.8, T0=298.15;
+const GRAPHS=[
+  {key:'VT', lbl:'V(T)', title:'נפח מול טמפרטורה · לחץ קבוע של 1 bar',
+   q:'מול אחד של גז אידיאלי בלחץ קבוע של <span class="m">1 bar</span>. איך נראה <span class="m">V</span> כפונקציה של <span class="m">T</span>, מ-0 ועד 600 K?',
+   xr:[0,600], yr:[0,55], xlab:'T (K)', ylab:'V (L)',
+   curves:[{f:T=>Vof(T,1), from:100, to:600, col:'--primary'}, {f:T=>Vof(T,1), from:0, to:100, col:'--primary', dash:true}],
+   ans:'קו ישר: <span class="m">V = (nR/p)·T</span>. ב-300 K יוצא <span class="m">24.9 L</span>, ומי שזוכר את הנפח המולרי — זה הוא. ההמשך שלו פוגע ב-<span class="m">V = 0</span> בדיוק ב-0 K. ככה מצאו פעם את האפס המוחלט: מאריכים את הקו. גז אמיתי יתעבה הרבה לפני כן, ולכן הקטע הזה מקווקו.'},
+  {key:'pV', lbl:'p(V)', title:'לחץ מול נפח · שתי איזותרמות',
+   q:'אותו מול, הפעם בטמפרטורה קבועה. שרטטו את <span class="m">p</span> כפונקציה של <span class="m">V</span> ב-300 K, ואז עוד קו ב-600 K. איפה עובר הקו החם?',
+   xr:[5,60], yr:[0,6], xlab:'V (L)', ylab:'p (bar)',
+   curves:[{f:V=>pof(300,V), from:5, to:60, col:'--primary'}, {f:V=>pof(600,V), from:8.3, to:60, col:'--warn'}],
+   leg2:'600 K',
+   ans:'היפרבולה: <span class="m">pV = nRT</span> קבוע לאורך הקו. האיזותרמה החמה רחוקה יותר מהראשית — באותו נפח, הלחץ כפול. והשטח מתחת לקו בין שני נפחים? זו העבודה בתהליך איזותרמי הפיך, <span class="m">|W| = nRT·ln(V₂/V₁)</span>, משקף 26 בהרצאה 3. בתחנה ב׳ נצבע אותו.'},
+  {key:'pT', lbl:'p(T)', title:'לחץ מול טמפרטורה · נפח קבוע של 24.9 L',
+   q:'עכשיו נועלים את הנפח על <span class="m">24.9 L</span> ומחממים. איך נראה <span class="m">p</span> כפונקציה של <span class="m">T</span>?',
+   xr:[0,600], yr:[0,2.5], xlab:'T (K)', ylab:'p (bar)',
+   curves:[{f:T=>pof(T,Vof(300,1)), from:0, to:600, col:'--primary'}],
+   ans:'שוב קו ישר דרך הראשית: <span class="m">p = (nR/V)·T</span>. ב-300 K בדיוק <span class="m">1 bar</span>, וב-600 K — פי שניים. שימו לב: אין פה שום עבודה, כי <span class="m">dV = 0</span>. כל החום שנכנס הולך ל-<span class="m">U</span>. זה הקלורימטר מסוג פצצה.'},
+  {key:'UH', lbl:'U(T), H(T)', title:'אנרגיה פנימית ואנתלפיה מול טמפרטורה',
+   q:'גז אידיאלי חד-אטומי. שרטטו את <span class="m">U</span> ואת <span class="m">H</span> כפונקציה של <span class="m">T</span>, שניהם על אותו גרף. מי מהם תלול יותר, ולמה?',
+   xr:[0,600], yr:[0,13], xlab:'T (K)', ylab:'U, H (kJ)',
+   curves:[{f:T=>CV*T/1000, from:0, to:600, col:'--primary'}, {f:T=>CP*T/1000, from:0, to:600, col:'--warn'}],
+   leg2:'H',
+   ans:'שני קווים ישרים. <span class="m">U = (3/2)RT</span>, ו-<span class="m">H = U + pV = U + RT</span>. לכן <span class="m">H</span> תלול יותר: השיפוע של <span class="m">U</span> הוא <span class="m">C<sub>V</sub> = 12.5</span>, של <span class="m">H</span> הוא <span class="m">C<sub>p</sub> = 20.8 J/(mol·K)</span>. ההפרש ביניהם הוא בדיוק <span class="m">R</span>. זוכרים למה צריך יותר חום בלחץ קבוע? כי חלק ממנו הולך לעבודה — לפנות מקום לגז שמתפשט. שקף 39.'},
+  {key:'ST', lbl:'S(T) ★', title:'אנטרופיה מול טמפרטורה · ארגון ב-1 bar',
+   q:'<b>אתגר קטן.</b> מחממים ארגון בלחץ קבוע מ-100 K ל-1000 K. איך נראית <span class="m">S</span> כפונקציה של <span class="m">T</span>? עולה, אבל איך — בקו ישר?',
+   xr:[100,1000], yr:[120,185], xlab:'T (K)', ylab:'S (J/K)',
+   curves:[{f:T=>S0_AR+CP*Math.log(T/T0), from:100, to:1000, col:'--primary'}],
+   ans:'עולה, אבל הולכת ומתמתנת: <span class="m">dS = C<sub>p</sub>·dT/T</span>, ולכן <span class="m">S = S° + C<sub>p</sub>·ln(T/298)</span>. אותה מעלה אחת שווה פי שלושה יותר אנטרופיה ב-100 K מאשר ב-300 K. חום שנכנס לגז קר "מבלגן" אותו הרבה יותר.'},
+  {key:'GT', lbl:'G(T) ★', title:'אנרגיה חופשית מול טמפרטורה · ארגון ב-1 bar',
+   q:'<b>האתגר.</b> אותו חימום. איך נראית <span class="m">G</span> כפונקציה של <span class="m">T</span>? רמז: ראיתם בכימיה 1 ש-<span class="m">dG = −S·dT + V·dp</span>.',
+   xr:[100,1000], yr:[-125,35], xlab:'T (K)', ylab:'G − G(298 K) (kJ)',
+   curves:[{f:T=>(-S0_AR*(T-T0)-CP*(T*Math.log(T/T0)-(T-T0)))/1000, from:100, to:1000, col:'--primary'}],
+   ans:'יורדת, והולכת ונעשית תלולה. בלחץ קבוע <span class="m">dG = −S·dT</span>, זאת אומרת שהשיפוע הוא <span class="m">−S</span>. ו-<span class="m">S</span> גדלה עם <span class="m">T</span> (הגרף הקודם), ולכן השיפוע נעשה שלילי יותר ויותר. זה הסוד של כל מעבר פאזה: הפאזה עם האנטרופיה הגדולה יורדת מהר יותר, ובטמפרטורה גבוהה היא מנצחת. נגיע לזה בסמסטר ב׳.'}
+];
+const SA={g:0, revealed:false, strokes:[], cur:null, P:null};
+function drawA(){
+  const G=GRAPHS[SA.g];
+  $('a-title').textContent=G.title; $('a-q').innerHTML=G.q;
+  $('a-ans').innerHTML=G.ans; $('a-ans').style.display=SA.revealed?'block':'none';
+  $('a-next').style.display=SA.revealed && SA.g<GRAPHS.length-1?'block':'none';
+  $('a-reveal').textContent=SA.revealed?'הסתר את התשובה':'חשוף את התשובה';
+  $('a-leg2').style.display=G.leg2&&SA.revealed?'inline':'none'; $('a-leg2t').textContent=G.leg2||'';
+  const g=setupCanvas($('cv-a')); if(!g) return; const {ctx,w,h}=g;
+  const P=plot(62, w-16, h-44, 28, G.xr, G.yr); SA.P=P;
+  frame(ctx,P,G.xr,G.yr,{xlab:G.xlab, ylab:G.ylab, yfmt:t=>fmtS(t, Math.abs(G.yr[1]-G.yr[0])<10?1:0)});
+  ctx.save(); ctx.beginPath(); ctx.rect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1); ctx.clip();
+  /* הניחוש */
+  ctx.strokeStyle=css('--gold'); ctx.lineWidth=3.2; ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const s of SA.strokes){ if(s.length<2) continue; ctx.beginPath(); s.forEach((q,i)=>{ const x=P.X(q[0]), y=P.Y(q[1]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); }
+  /* התשובה */
+  if(SA.revealed){
+    for(const c of G.curves){
+      ctx.strokeStyle=css(c.col); ctx.lineWidth=2.6; ctx.setLineDash(c.dash?[7,6]:[]); ctx.beginPath();
+      const N=240; let started=false;
+      for(let i=0;i<=N;i++){ const x=c.from+(c.to-c.from)*i/N, y=c.f(x); if(!Number.isFinite(y)) continue; const X=P.X(x), Y=P.Y(y); started?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),started=true); }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+  ctx.restore();
+  if(!SA.strokes.length && !SA.revealed){ ctx.fillStyle=css('--muted'); ctx.font='700 14px Heebo, system-ui, sans-serif'; heT(ctx,'שרטטו כאן את הניחוש שלכם',(P.x0+P.x1)/2,(P.y0+P.y1)/2); }
+}
+function aPick(i){ SA.g=i; SA.revealed=false; SA.strokes=[]; chips('a-chips', GRAPHS.map((G,j)=>({key:j,lbl:G.lbl})), i, aPick); drawA(); }
+(function(){
+  const cv=$('cv-a'); let down=false;
+  const toData=e=>{ const r=cv.getBoundingClientRect(); const P=SA.P; if(!P) return null; const x=e.clientX-r.left, y=e.clientY-r.top;
+    if(x<P.x0-4||x>P.x1+4||y<P.y1-4||y>P.y0+4) return null; return [P.invX(Math.max(P.x0,Math.min(P.x1,x))), P.invY(Math.max(P.y1,Math.min(P.y0,y)))]; };
+  cv.addEventListener('pointerdown',e=>{ const q=toData(e); if(!q) return; down=true; cv.setPointerCapture(e.pointerId); SA.cur=[q]; SA.strokes.push(SA.cur); drawA(); });
+  cv.addEventListener('pointermove',e=>{ if(!down) return; const q=toData(e); if(q){ SA.cur.push(q); drawA(); } });
+  const up=()=>{ down=false; SA.cur=null; };
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+})();
+
+/* ============================================================
+   ב · שני מסלולים — ג · המעגל
+   ============================================================ */
+const XR=[8,38], YR=[0,2.4];
+const SB={path:'A', t:0, anim:null, done:{A:0,B:0}, adi:false};
+/* t רץ מ-0 עד 2: שלב ראשון ושני */
+function pathPts(path,t,rev){
+  const pts=[]; const L=PATHS[path].legs; const N=60;
+  const seq = rev ? [ {L:L[1],r:true}, {L:L[0],r:true} ] : [ {L:L[0],r:false}, {L:L[1],r:false} ];
+  for(let s=0;s<2;s++){ const tt=Math.max(0,Math.min(1,t-s)); if(tt<=0 && s>0) break;
+    for(let i=0;i<=N;i++){ const u=i/N*tt; pts.push(legPt(seq[s].L, seq[s].r?1-u:u)); } }
+  return pts;
+}
+function isoLine(ctx,P,T,col,dash){ ctx.strokeStyle=col; ctx.lineWidth=1.3; ctx.setLineDash(dash||[4,5]); ctx.beginPath();
+  for(let i=0;i<=200;i++){ const V=XR[0]+(XR[1]-XR[0])*i/200, p=pof(T,V); const X=P.X(V), Y=P.Y(p); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); } ctx.stroke(); ctx.setLineDash([]); }
+function pvFrame(ctx,w,h){
+  const P=plot(56, w-14, h-44, 22, XR, YR);
+  frame(ctx,P,XR,YR,{xlab:'V (L)', ylab:'p (bar)', yfmt:t=>t.toFixed(1)});
+  ctx.save(); ctx.beginPath(); ctx.rect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1); ctx.clip();
+  isoLine(ctx,P,T1,css('--muted')); isoLine(ctx,P,T2,css('--muted'));
+  ctx.restore();
+  /* תוויות האיזותרמות: בקצה הימני של הקנבס, בתוך השטח */
+  ctx.fillStyle=css('--muted'); ctx.font='700 11.5px Heebo, system-ui, sans-serif';
+  ltrT(ctx,'300 K',P.X(36),P.Y(pof(T1,36))-9,'center'); ltrT(ctx,'400 K',P.X(36),P.Y(pof(T2,36))-9,'center');
+  return P;
+}
+function shadeUnder(ctx,P,pts,col){
+  if(pts.length<2) return;
+  ctx.save(); ctx.globalAlpha=0.22; ctx.fillStyle=col; ctx.beginPath();
+  ctx.moveTo(P.X(pts[0][0]),P.Y(0)); for(const q of pts) ctx.lineTo(P.X(q[0]),P.Y(q[1])); ctx.lineTo(P.X(pts[pts.length-1][0]),P.Y(0)); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function stroke(ctx,P,pts,col,w){ if(pts.length<2) return; ctx.strokeStyle=col; ctx.lineWidth=w||3; ctx.beginPath(); pts.forEach((q,i)=>{ const X=P.X(q[0]),Y=P.Y(q[1]); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke(); }
+function statePts(ctx,P){
+  const s1=[Vof(T1,P1),P1], s2=[Vof(T2,P2),P2];
+  dot(ctx,P.X(s1[0]),P.Y(s1[1]),6.5,css('--primary')); dot(ctx,P.X(s2[0]),P.Y(s2[1]),6.5,css('--primary'));
+  ctx.fillStyle=css('--primary'); ctx.font='800 14px Heebo, system-ui, sans-serif';
+  ltrT(ctx,'1',P.X(s1[0])+13,P.Y(s1[1])-12); ltrT(ctx,'2',P.X(s2[0])-13,P.Y(s2[1])-12);
+}
+function drawB(){
+  const g=setupCanvas($('cv-b')); if(!g) return; const {ctx,w,h}=g;
+  const P=pvFrame(ctx,w,h);
+  ctx.save(); ctx.beginPath(); ctx.rect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1); ctx.clip();
+  /* השטח מתחת לכל שלב: כחול = דחיסה (עבודה על הגז), חמרה = התפשטות */
+  const path=SB.path, L=PATHS[path].legs;
+  for(let s=0;s<2;s++){ const tt=Math.max(0,Math.min(1,SB.t-s)); if(tt<=0) continue;
+    const pts=[]; for(let i=0;i<=60;i++) pts.push(legPt(L[s],i/60*tt));
+    shadeUnder(ctx,P,pts, L[s].W>0?css('--sky'):css('--warn')); }
+  /* המסלול השני (שכבר רץ) — קו דק להשוואה */
+  const other=path==='A'?'B':'A'; if(SB.done[other]) stroke(ctx,P,pathPts(other,2),css(PATHS[other].color),1.6);
+  stroke(ctx,P,pathPts(path,SB.t),css(PATHS[path].color),3.2);
+  if(SB.adi){ ctx.strokeStyle=css('--warn'); ctx.lineWidth=2; ctx.setLineDash([2,4]); ctx.beginPath();
+    const V1=Vof(T1,P1), K=P1*Math.pow(V1,5/3);
+    for(let i=0;i<=200;i++){ const V=XR[0]+(XR[1]-XR[0])*i/200, p=K/Math.pow(V,5/3); const X=P.X(V),Y=P.Y(p); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }
+    ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+  statePts(ctx,P);
+  /* נקודה נעה */
+  if(SB.t>0 && SB.t<2){ const s=SB.t<1?0:1, u=SB.t-s; const q=legPt(L[s],u); dot(ctx,P.X(q[0]),P.Y(q[1]),5,css(PATHS[path].color)); }
+  renderTable();
+}
+const HDR={W:'W', Q:'Q', dU:'ΔU', dH:'ΔH', dS:'ΔS'};
+function cell(v,k){ if(v===null) return '<td class="q">?</td>'; const s=k==='dS'?fmtS(v,2):fmtS(v,0); return '<td><span class="m">'+(v>0&&k!=='dS'?'+':'')+s+'</span></td>'; }
+function renderTable(){
+  let h='<tr><th>שלב</th>'+KEYS.map(k=>'<th><span class="m">'+HDR[k]+'</span></th>').join('')+'</tr>';
+  for(const p of ['A','B']){
+    const legs=PATHS[p].legs, prog = p===SB.path ? SB.t : (SB.done[p]?2:0);
+    legs.forEach((L,i)=>{ const shown = prog>=i+1-1e-9;
+      h+='<tr class="lg-'+p+'"><td class="lb">'+L.lab+'<span class="m">'+L.fx+'</span></td>'+KEYS.map(k=>cell(shown?L[k]:null,k)).join('')+'</tr>'; });
+    const T=total(PATHS[p]), all=prog>=2-1e-9;
+    h+='<tr class="tot tot-'+p+'"><td class="lb">סה״כ מסלול '+p+'</td>'+KEYS.map(k=>cell(all?T[k]:null,k)).join('')+'</tr>';
+  }
+  $('b-table').innerHTML=h;
+  if(SB.done.A && SB.done.B) $('b-note').innerHTML='שני המסלולים רצו. <b>מה זהה?</b> <span class="m">ΔU, ΔH, ΔS</span> — בדיוק אותו ערך. <b>מה שונה?</b> <span class="m">W</span> ו-<span class="m">Q</span>. ושימו לב לשורה של כל מסלול: <span class="m">Q + W = ΔU</span>, תמיד. את הטבלה הזו מעתיקים למחברת ומביאים ב-4.11.';
+}
+function bRun(){
+  if(SB.anim) cancelAnimationFrame(SB.anim);
+  SB.t=0; const t0=performance.now(), dur=3200;
+  const step=now=>{ SB.t=Math.min(2,(now-t0)/dur*2); drawB(); if(SB.t<2) SB.anim=requestAnimationFrame(step); else { SB.anim=null; SB.done[SB.path]=1; drawB(); } };
+  SB.anim=requestAnimationFrame(step);
+}
+
+const SC={t:0, anim:null, done:false};
+function drawC(){
+  const g=setupCanvas($('cv-c')); if(!g) return; const {ctx,w,h}=g;
+  const P=pvFrame(ctx,w,h);
+  ctx.save(); ctx.beginPath(); ctx.rect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1); ctx.clip();
+  const pa=pathPts('A',Math.min(2,SC.t)), pb=SC.t>2?pathPts('B',SC.t-2,true):[];
+  if(SC.done){ const loop=pathPts('A',2).concat(pathPts('B',2,true));
+    ctx.save(); ctx.globalAlpha=0.28; ctx.fillStyle=css('--warn'); ctx.beginPath(); loop.forEach((q,i)=>{ const X=P.X(q[0]),Y=P.Y(q[1]); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.closePath(); ctx.fill(); ctx.restore(); }
+  stroke(ctx,P,pa,css('--accent'),3.2); stroke(ctx,P,pb,css('--gold'),3.2);
+  /* חצי כיוון */
+  if(SC.done){ const ar=(pts,i,col)=>{ const a=pts[i], b=pts[i+3]; arrow(ctx,P.X(a[0]),P.Y(a[1]),P.X(b[0]),P.Y(b[1]),col,2.6); };
+    const A=pathPts('A',2), B=pathPts('B',2,true); ar(A,28,css('--accent')); ar(A,90,css('--accent')); ar(B,28,css('--gold')); ar(B,90,css('--gold')); }
+  ctx.restore();
+  statePts(ctx,P);
+  const a=total(PATHS.A), b=total(PATHS.B);
+  const M=s=>'<span class="m">'+s+'</span>';
+  const R=[ ['השינוי בנפח · '+M('L'), SC.done?'0.00':'?', ''], ['השינוי ב-'+M('U')+' · '+M('J'), SC.done?'0':'?', 'green'], ['השינוי ב-'+M('H')+' · '+M('J'), SC.done?'0':'?', 'green'], ['השינוי ב-'+M('S')+' · '+M('J/K'), SC.done?'0.00':'?', 'green'],
+            ['העבודה על הגז, '+M('W')+' · '+M('J'), SC.done?fmtS(a.W-b.W,0):'?', 'warn'], ['החום, '+M('Q')+' · '+M('J'), SC.done?'+'+fmtS(a.Q-b.Q,0):'?', 'acc'] ];
+  $('c-reads').innerHTML=R.map(r=>'<div class="rd '+r[2]+'"><div class="t">'+r[0]+'</div><div class="n">'+r[1]+'</div></div>').join('');
+  if(SC.done) $('c-note').innerHTML='הגז חזר לנקודה 1, ולכן כל פונקציות המצב חזרו לעצמן: <span class="m">∮ΔU = ∮ΔH = ∮ΔS = 0</span>. אבל <span class="m">W = 898 − 1474 = −576 J</span>. מינוס — זאת אומרת שהגז עשה 576 ג׳ול עבודה על הסביבה בכל סיבוב, ושילם עליהם ב-576 ג׳ול של חום שנכנס. <b>זה המספר שמביאים לשיעור.</b>';
+}
+function cRun(){
+  if(SC.anim) cancelAnimationFrame(SC.anim);
+  SC.t=0; SC.done=false; const t0=performance.now(), dur=5200;
+  const step=now=>{ SC.t=Math.min(4,(now-t0)/dur*4); drawC(); if(SC.t<4) SC.anim=requestAnimationFrame(step); else { SC.anim=null; SC.done=true; drawC(); } };
+  SC.anim=requestAnimationFrame(step);
+}
+
+/* ============================================================
+   חיווט
+   ============================================================ */
+const DRAW={o:()=>{},a:drawA,b:drawB,c:drawC};
+let CUR='o';
+function drawCur(){ try{ DRAW[CUR](); }catch(e){ console.error(CUR,e); } }
+function selectTab(key){ const b=document.querySelector('.tabs [role=tab][data-tab="'+key+'"]'); if(b) b.click(); }
+function stopAnims(){ for(const S of [SB,SC]){ if(S.anim){ cancelAnimationFrame(S.anim); S.anim=null; } }
+  if(SB.t>0&&SB.t<2){ SB.t=2; SB.done[SB.path]=1; } if(SC.t>0&&SC.t<4){ SC.t=4; SC.done=true; } }
+document.querySelectorAll('.tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
+  CUR=b.dataset.tab; stopAnims();
+  document.querySelectorAll('.tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.id==='pane-'+CUR));
+  requestAnimationFrame(drawCur);
+}));
+function chips(elId, list, cur, onpick){
+  const el=$(elId); el.innerHTML='';
+  list.forEach(D=>{ const b=document.createElement('button'); b.textContent=D.lbl; b.setAttribute('aria-pressed', D.key===cur?'true':'false');
+    b.addEventListener('click',()=>onpick(D.key)); el.appendChild(b); });
+}
+function segWire(id, attr, onpick){ document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{ onpick(b.dataset[attr]); document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false')); })); }
+$('o-go').addEventListener('click',()=>selectTab('a'));
+$('a-reveal').addEventListener('click',()=>{ SA.revealed=!SA.revealed; drawA(); });
+$('a-clear').addEventListener('click',()=>{ SA.strokes=[]; drawA(); });
+$('a-next').addEventListener('click',()=>aPick(Math.min(GRAPHS.length-1,SA.g+1)));
+segWire('b-path','p',p=>{ stopAnims(); SB.path=p; SB.t=SB.done[p]?2:0; drawB(); });
+$('b-go').addEventListener('click',bRun);
+$('b-adi').addEventListener('click',function(){ SB.adi=!SB.adi; this.setAttribute('aria-pressed',SB.adi?'true':'false');
+  this.textContent=SB.adi?'הסתר את האדיאבט':'ומה אם הקיר מבודד? · הצצה'; $('b-adleg').style.display=SB.adi?'inline':'none';
+  $('b-adnote').style.display=SB.adi?'block':'none';
+  $('b-adnote').innerHTML='הקו המנוקד יוצא מנקודה 1 בלי שום חום: <span class="m">Q = 0</span>. הוא תלול יותר מהאיזותרמה של 300 K. כשדוחסים גז מבודד, כל העבודה נכנסת ל-<span class="m">U</span> והוא מתחמם — ולכן הלחץ עולה מהר יותר. את המשוואה שלו, <span class="m">pV<sup>5/3</sup></span> קבוע, נפתח ביחידה 5. בינתיים — רק להסתכל.';
+  drawB(); });
+$('c-go').addEventListener('click',cRun);
+$('c-ans').addEventListener('click',function(){ const on=$('c-anstxt').style.display==='block'; $('c-anstxt').style.display=on?'none':'block'; this.textContent=on?'— הראו לי כיוון':'הסתר';
+  $('c-anstxt').innerHTML='כי <span class="m">W</span> איננה פונקציית מצב. היא תלויה בדרך, ולכן על מעגל סגור היא לא חייבת להתאפס — בניגוד ל-<span class="m">U</span>, <span class="m">V</span> או <span class="m">S</span>. ובזכות זה בדיוק יש מנועים: מכונה שחוזרת לאותו מצב ובדרך מוציאה עבודה. במפגש הראשון נראה מבחן מתמטי בן שורה אחת שמבדיל בין שני הסוגים — והוא יגיד לכם את זה עוד לפני שמסובבים מעגל.'; });
+aPick(0);
+/* קישור עמוק: sim_pv.html#a / #b / #c */
+(function(){ const k=(location.hash||'').replace('#',''); if(DRAW[k] && k!=='o') selectTab(k); })();
+addEventListener('hashchange',()=>{ const k=(location.hash||'').replace('#',''); if(DRAW[k]) selectTab(k); });
+$('themeb').addEventListener('click', function(){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', dark?'light':'dark');
+  this.textContent = dark?'מצב כהה':'מצב בהיר'; drawCur();
+});
+addEventListener('resize', drawCur);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopAnims(); });
+drawCur();
+</script>
+</body>
+</html>

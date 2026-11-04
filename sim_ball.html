@@ -128,6 +128,57 @@ canvas.bars{height:300px} canvas.graph{height:230px} canvas.qcv{height:200px}
 .taskbar{display:flex; gap:12px; align-items:center; background:color-mix(in srgb, var(--gold) 14%, var(--panel)); border:1.5px solid var(--gold); border-radius:12px; padding:9px 14px; margin-bottom:12px; line-height:1.6}
 .taskbar span{flex:1} .taskbar .ghost{white-space:nowrap}
 .note{min-height:60px}
+
+/* ============ מסך אחד: במסך רחב (מקרן, מחשב) כל ההדגמה נכנסת למסך בלי גלילה ============ */
+html.fit, html.fit body{height:100%}
+html.fit body{display:flex; flex-direction:column; overflow:hidden; padding-bottom:10px}
+html.fit header.top{margin-bottom:4px} html.fit header.top .sub{display:none}
+html.fit .tabs{margin-bottom:8px; padding-bottom:4px}
+html.fit .tabs button{min-height:36px; padding:5px 12px}
+html.fit .pane.on{flex:1 1 auto; min-height:0; overflow:auto}
+html.fit #pane-a.on{overflow:hidden; display:grid; gap:10px;
+  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-areas:"task task task" "box bars graph" "box bars set"}
+html.fit.st-on #pane-a.on{grid-template-areas:"task task task" "box bars states" "set bars states"}
+html.fit #pane-a .wrap{display:contents}
+html.fit #pane-a .taskbar{grid-area:task; margin:0; padding:6px 12px}
+html.fit #pane-a .card{display:flex; flex-direction:column; min-height:0; margin:0 !important; padding:10px 12px}
+html.fit #pane-a .card:has(#cv-box){grid-area:box}
+html.fit #pane-a .card:has(#cv-bars){grid-area:bars}
+html.fit #pane-a .card:has(#cv-graph){grid-area:graph}
+html.fit #pane-a .card:has(#nseg){grid-area:set}
+html.fit #pane-a .card.states{grid-area:states}
+html.fit.st-on #pane-a .card.states{display:flex !important}
+html.fit.st-on #pane-a .card:has(#cv-graph){display:none}
+html.fit #pane-a canvas{flex:1 1 0; height:auto; min-height:60px}
+html.fit #pane-a .card h3{margin-bottom:4px}
+html.fit #pane-a .btnrow .ghost{margin-top:6px; min-height:36px}
+html.fit #pane-a .bigbtn{min-height:42px; margin-top:6px}
+html.fit #pane-a .note{min-height:0; margin-top:6px; font-size:14px; line-height:1.5}
+html.fit #pane-a .legend{margin:2px 0 0}
+/* ההגדרות: שורה לכל בקרה, התווית לצידה, בלי כותרת */
+html.fit #pane-a .card:has(#nseg) h3{display:none}
+html.fit #pane-a .card:has(#nseg){gap:4px}
+html.fit #pane-a .card:has(#nseg) .ctl{margin:0; display:flex; align-items:center; gap:10px}
+html.fit #pane-a .card:has(#nseg) .ctl label{flex:0 0 118px; font-size:13px; display:flex; flex-direction:column; align-items:flex-start; line-height:1.25}
+html.fit #pane-a .card:has(#nseg) .ctl label .v{font-size:13px}
+html.fit #pane-a .card:has(#nseg) .seg{flex:1; margin:0; flex-wrap:nowrap}
+html.fit #pane-a .card:has(#nseg) .seg button{min-height:32px; padding:2px 4px; font-size:13.5px}
+html.fit #pane-a .card:has(#nseg) input[type=range]{flex:1; height:24px; margin:0}
+html.fit .lng{display:none}
+html.fit.st-on #pane-a .card:has(#nseg) .ctl:has(input[type=range]){display:none}
+html.fit #pane-a .mysterybtn{margin-top:4px; min-height:36px}
+/* ספירת המצבים בעמודה אחת */
+html.fit #pane-a .card.states .wrap2{display:flex; flex-direction:column; gap:6px; flex:1 1 auto; min-height:0}
+html.fit #pane-a .card.states .wrap2>div:last-child{display:flex; flex-direction:column; flex:1 1 auto; min-height:0}
+html.fit #pane-a .card.states .tiny{display:none}
+html.fit #pane-a .card.states .hint{display:none}
+html.fit #pane-a .reads{gap:5px; margin-top:2px}
+html.fit #pane-a .rd{padding:3px 8px}
+html.fit #pane-a .rd .n{font-size:17px; line-height:1.3}
+html.fit #pane-a #st-note{font-size:13px; line-height:1.45; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden}
+html.fit #pane-a canvas.qcv{min-height:90px}
 </style>
 </head>
 <body>
@@ -179,7 +230,7 @@ canvas.bars{height:300px} canvas.graph{height:230px} canvas.qcv{height:200px}
       <div class="ctl"><label>מספר האטומים</label>
         <div class="seg" id="nseg"><button data-n="2" aria-pressed="false">2</button><button data-n="4" aria-pressed="false">4</button><button data-n="16" aria-pressed="true">16</button><button data-n="64" aria-pressed="false">64</button></div></div>
       <div class="ctl"><label>מהירות ההרצה</label>
-        <div class="seg" id="spseg"><button data-s="1" aria-pressed="true">×1</button><button data-s="4" aria-pressed="false">×4</button><button data-s="15" aria-pressed="false">×15 · ״הולכים לשתות קפה״</button></div></div>
+        <div class="seg" id="spseg"><button data-s="1" aria-pressed="true">×1</button><button data-s="4" aria-pressed="false">×4</button><button data-s="15" aria-pressed="false">×15<span class="lng"> · ״הולכים לשתות קפה״</span></button></div></div>
       <div class="ctl"><label>קשיחות הקפיצים <span class="v" id="Kv">K = 1.0</span></label><input type="range" id="K" min="0.3" max="3" step="0.1" value="1"></div>
       <div class="ctl"><label>כבידה <span class="v" id="Gv">G = 0.0040</span></label><input type="range" id="G" min="0" max="0.008" step="0.0005" value="0.004"></div>
       <button class="mysterybtn" id="statesb" aria-pressed="false">★ ספרו מצבים</button>
@@ -571,7 +622,7 @@ function setSeg(id,attr,val){ document.querySelectorAll('#'+id+' button').forEac
 function segWire(id,attr,on){ document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{ setSeg(id,attr,b.dataset[attr]); on(b.dataset[attr]); })); }
 function setFreezeBtn(){ const b=$('freeze'); b.setAttribute('aria-pressed',ST.frozenReq?'true':'false'); b.textContent='הקפאת הקפיצים: '+(ST.frozenReq?'פועלת':'כבויה'); }
 function toggleStates(){ ST.showStates=!ST.showStates; $('states').style.display=ST.showStates?'block':'none'; $('statesb').setAttribute('aria-pressed',ST.showStates?'true':'false');
-  $('statesb').textContent=ST.showStates?'★ הסתירו את ספירת המצבים':'★ ספרו מצבים'; if(ST.showStates) requestAnimationFrame(drawStates); }
+  $('statesb').textContent=ST.showStates?'★ הסתירו את ספירת המצבים':'★ ספרו מצבים'; document.documentElement.classList.toggle('st-on',ST.showStates); requestAnimationFrame(()=>DRAW[CUR]()); }
 $('go').addEventListener('click',()=>{ if(ST.run) stop(); else start(); });
 $('reset').addEventListener('click',resetSim);
 $('rev').addEventListener('click',doReverse);
@@ -584,7 +635,9 @@ $('statesb').addEventListener('click',toggleStates);
 $('taskbar-back').addEventListener('click',()=>{ $('taskbar').style.display='none'; selectTab('b'); });
 $('themeb').addEventListener('click', function(){ const dark=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme', dark?'light':'dark'); this.textContent=dark?'מצב כהה':'מצב בהיר'; drawAll(); });
-addEventListener('resize', ()=>DRAW[CUR]());
+function setFit(){ const on=innerWidth>=1000 && innerWidth/innerHeight>=1.2; document.documentElement.classList.toggle('fit',on); }
+setFit();
+addEventListener('resize', ()=>{ setFit(); DRAW[CUR](); });
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stop(); });
 renderTasks(); resetSim();
 (function(){ const k=(location.hash||'').replace('#',''); if(DRAW[k] && k!=='a') selectTab(k); })();

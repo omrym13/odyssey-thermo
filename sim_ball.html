@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>כדור הקפיצים · החוק הראשון והשני</title>
+<style>
+:root{
+  --bg:#FBF8F1; --panel:#FFFFFF; --primary:#1F4E79; --accent:#2A9D8F; --accentdk:#1E7A6E;
+  --gold:#D9A441; --goldtx:#8A6414; --warn:#C0553A; --sky:#7B9ACC; --green:#2E6F40;
+  --ink:#1A1A1A; --muted:#6B7280; --line:#DDE3EC; --soft:#EEF2FA;
+}
+[data-theme="dark"]{
+  --bg:#12181f; --panel:#182029; --primary:#8FC1E8; --accent:#5FD0C0; --accentdk:#7FE0D0;
+  --gold:#E7C455; --goldtx:#E7C455; --warn:#E8886B; --sky:#9DB6E0; --green:#6FBF83;
+  --ink:#E9EEF4; --muted:#9AA7B4; --line:#2B3644; --soft:#1e2833;
+}
+*{box-sizing:border-box}
+html,body{margin:0; padding:0}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 "Heebo",system-ui,-apple-system,sans-serif;
+  padding:12px clamp(10px,2.5vw,28px) 40px; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+header.top{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+header.top h1{font-size:clamp(18px,2.4vw,25px); margin:0; color:var(--primary); font-weight:900}
+header.top .sub{color:var(--muted); font-size:13.5px}
+header.top .sp{flex:1}
+button{font:inherit; cursor:pointer}
+.ghost{background:var(--panel); color:var(--ink); border:1.5px solid var(--line);
+  border-radius:9px; padding:7px 13px; font-weight:700; min-height:38px}
+.ghost:hover{border-color:var(--primary)}
+.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; border-bottom:2px solid var(--line); padding-bottom:8px}
+.tabs button{background:transparent; color:var(--muted); border:none; border-bottom:3px solid transparent;
+  padding:8px 12px; min-height:44px; font-weight:800; font-size:14px; border-radius:6px 6px 0 0}
+.tabs button .k{display:inline-block; background:var(--line); color:var(--ink); border-radius:999px;
+  padding:1px 9px; margin-inline-end:6px; font-size:12.5px}
+.tabs button[aria-selected="true"]{color:var(--primary); border-bottom-color:var(--gold)}
+.tabs button[aria-selected="true"] .k{background:var(--gold); color:#2f2607}
+.tabs button.game{color:var(--accentdk)}
+.pane{display:none}
+.pane.on{display:block}
+.fnbar{background:var(--panel); border:1.5px solid var(--line); border-right:6px solid var(--primary);
+  border-radius:14px; padding:11px 16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.fnbar .lab{font-size:13px; font-weight:800; color:var(--muted); white-space:nowrap}
+.fnbar .expr{flex:1; text-align:center; direction:ltr; unicode-bidi:isolate;
+  font-family:"STIX Two Math","Cambria Math",Georgia,serif;
+  font-size:clamp(18px,2.6vw,27px); font-weight:700; color:var(--primary); line-height:1.35}
+.wrap{display:grid; grid-template-columns:minmax(0,1.55fr) minmax(285px,1fr);
+  gap:clamp(10px,1.8vw,20px); align-items:start}
+@media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+.card{background:var(--panel); border:1.5px solid var(--line); border-radius:14px; padding:12px 14px}
+.card h3{margin:0 0 8px; font-size:15px; color:var(--primary); font-weight:800}
+.card h3 .hint{font-weight:600; color:var(--muted); font-size:12.5px}
+/* גובה קבוע ב-CSS — חובה. בלעדיו הקנבס מכפיל את עצמו בכל ציור מחדש. */
+canvas{width:100%; height:clamp(320px,52vh,460px); display:block; border-radius:10px; touch-action:none}
+@media (max-width:900px){ canvas{height:clamp(300px,48vh,400px)} }
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
+.chips button{font-weight:700; font-size:13.5px; min-height:40px; background:var(--panel);
+  color:var(--ink); border:1.5px solid var(--line); border-radius:9px; padding:6px 11px;
+  direction:ltr; font-family:"STIX Two Math",Georgia,serif}
+.chips button[aria-pressed="true"]{background:var(--primary); color:#fff; border-color:var(--primary)}
+[data-theme="dark"] .chips button[aria-pressed="true"]{color:#12181f}
+.seg{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
+.seg button{flex:1; min-height:42px; border-radius:9px; border:1.6px solid var(--line); background:var(--panel);
+  color:var(--muted); font-weight:800; font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.ctl{margin:10px 0}
+.ctl label{display:flex; justify-content:space-between; align-items:baseline; font-weight:800; font-size:14px; color:var(--primary)}
+.ctl label .v{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-weight:700; color:var(--warn); font-size:15px}
+.ctl input[type=range]{width:100%; margin-top:4px; accent-color:var(--primary); height:30px}
+.reads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+.rd{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:7px 10px}
+.rd .t{font-size:12px; color:var(--muted); font-weight:700}
+.rd .n{direction:ltr; unicode-bidi:isolate; font-family:"STIX Two Math",Georgia,serif; font-size:clamp(16px,1.9vw,21px); font-weight:800; color:var(--primary); line-height:1.3}
+.rd.gold{background:color-mix(in srgb, var(--gold) 16%, var(--panel)); border-color:var(--gold)}
+.rd.gold .n{color:var(--goldtx)}
+.rd.warn .n{color:var(--warn)} .rd.green .n{color:var(--green)} .rd.acc .n{color:var(--accentdk)}
+.rd.wide{grid-column:1 / -1}
+.bigbtn{width:100%; margin-top:9px; min-height:46px; border-radius:11px; font-weight:800;
+  font-size:15px; border:2px solid var(--gold); background:var(--gold); color:#3a2f08}
+.resetb{width:100%; margin-top:7px; min-height:40px; border-radius:10px; font-weight:700;
+  border:1.5px dashed var(--line); background:transparent; color:var(--muted)}
+.note{margin-top:11px; background:color-mix(in srgb, var(--primary) 6%, var(--panel));
+  border-right:4px solid var(--primary); border-radius:9px; padding:9px 12px; font-size:13.5px;
+  line-height:1.65; min-height:70px}
+.note b{color:var(--primary)}
+.note .m, .m{direction:ltr; unicode-bidi:isolate; display:inline-block; font-family:"STIX Two Math",Georgia,serif; font-size:1.06em}
+.verdict{margin-top:8px; border-radius:10px; padding:9px 12px; font-weight:800; text-align:center; font-size:15px}
+.verdict.ok{background:color-mix(in srgb, var(--green) 14%, var(--panel)); color:var(--green); border:1.5px solid var(--green)}
+.verdict.bad{background:color-mix(in srgb, var(--warn) 12%, var(--panel)); color:var(--warn); border:1.5px solid var(--warn)}
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12.5px; color:var(--muted)}
+.legend i{display:inline-block; width:15px; height:9px; border-radius:2px; vertical-align:middle; margin-inline-end:5px}
+.foot{margin-top:14px; font-size:12.5px; color:var(--muted); text-align:center}
+.num{display:flex; align-items:center; gap:10px; margin:6px 0 10px}
+.num input{width:90px; font:inherit; font-size:18px; font-weight:800; padding:6px 10px; border:2px solid var(--primary);
+  border-radius:9px; direction:ltr; text-align:center; background:var(--panel); color:var(--ink)}
+.num label{font-weight:800; color:var(--primary)}
+textarea{width:100%; min-height:150px; font:13px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr;
+  border:1.5px solid var(--line); border-radius:10px; padding:8px; background:var(--bg); color:var(--ink); margin-top:8px}
+.station{display:none} .station.on{display:block}
+.pill{display:inline-block; background:var(--soft); color:var(--primary); border-radius:999px; padding:2px 10px; font-weight:800; font-size:12.5px}
+.bigbtn.alt{background:var(--accent); border-color:var(--accent); color:#fff}
+.seg.col{flex-direction:column} .seg.col button{flex:none; text-align:right}
+.rd .t sub, .fnbar sub{font-size:0.75em}
+.hint2{font-size:12.5px; color:var(--muted); font-weight:700; margin-top:10px}
+#a-speed{margin-top:8px}
+@media (max-width:620px){ #cv-a{height:calc(56vw + 74px)} }
+.bigbtn.alt{background:var(--accent); border-color:var(--accent); color:#fff}
+.bigbtn:disabled{opacity:.45; cursor:not-allowed}
+.btnrow{display:flex; gap:8px; flex-wrap:wrap} .btnrow > *{flex:1}
+.btnrow .ghost{margin-top:9px; min-height:42px}
+.ghost.toggle[aria-pressed="true"]{background:var(--primary); color:#fff; border-color:var(--primary)}
+[data-theme="dark"] .ghost.toggle[aria-pressed="true"]{color:#12181f}
+#cv-box{height:clamp(320px,58vh,540px)} @media (max-width:620px){ #cv-box{height:420px} }
+canvas.bars{height:300px} canvas.graph{height:230px} canvas.qcv{height:200px}
+.clockrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px}
+.clockrow .big{font-size:20px; font-weight:800; color:var(--primary)}
+.pill{direction:rtl; display:inline-block; background:var(--soft); color:var(--primary); border-radius:999px; padding:2px 10px; font-weight:800; font-size:12.5px}
+.mysterybtn{width:100%; margin-top:12px; min-height:46px; border-radius:11px; font-weight:800; font-size:15px; border:2px dashed var(--accent); background:transparent; color:var(--accentdk)}
+.mysterybtn[aria-pressed="true"]{background:color-mix(in srgb, var(--accent) 12%, var(--panel)); border-style:solid}
+.card.states{border:2px solid var(--accent)}
+.wrap2{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start} @media (max-width:900px){ .wrap2{grid-template-columns:1fr} }
+.intro{display:grid; grid-template-columns:1fr 1fr; gap:12px} @media (max-width:900px){ .intro{grid-template-columns:1fr} }
+.intro p{margin:0 0 8px; line-height:1.7}
+.tasks{display:grid; grid-template-columns:1fr 1fr; gap:12px} @media (max-width:900px){ .tasks{grid-template-columns:1fr} }
+.task p{margin:0 0 6px; line-height:1.7}
+.card.gold{border-color:var(--gold); background:color-mix(in srgb, var(--gold) 9%, var(--panel))}
+.tiny{font-size:13px; color:var(--muted)}
+.taskbar{display:flex; gap:12px; align-items:center; background:color-mix(in srgb, var(--gold) 14%, var(--panel)); border:1.5px solid var(--gold); border-radius:12px; padding:9px 14px; margin-bottom:12px; line-height:1.6}
+.taskbar span{flex:1} .taskbar .ghost{white-space:nowrap}
+.note{min-height:60px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>כדור הקפיצים</h1>
+  <span class="sub">החוק הראשון והחוק השני · כדור של אטומים וקפיצים בתוך קופסה מבודדת לגמרי</span>
+  <span class="sp"></span>
+  <button class="ghost" id="themeb">מצב כהה</button>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" data-tab="a" aria-selected="true"><span class="k">א</span>ההדגמה</button>
+  <button role="tab" data-tab="b" aria-selected="false"><span class="k">ב</span>המשימות</button>
+  <button role="tab" data-tab="c" aria-selected="false"><span class="k">ג</span>איך זה בנוי</button>
+</div>
+
+<!-- ============ א ההדגמה ============ -->
+<div class="pane on" id="pane-a">
+  <div class="taskbar" id="taskbar" style="display:none"><span id="taskbar-t"></span><button class="ghost" id="taskbar-back">חזרה למשימות</button></div>
+  <div class="wrap">
+    <div class="card">
+      <h3>הקופסה <span class="hint">· אין חיכוך, הרצפה והקירות אלסטיים, ושום אנרגיה לא יוצאת החוצה</span></h3>
+      <canvas id="cv-box"></canvas>
+      <div class="clockrow"><span class="pill">זמן מאז השחרור</span> <span class="m big" id="clock">0.0 s</span> <span class="pill">האנרגיה הכוללת</span> <span class="m" id="etot">—</span></div>
+    </div>
+    <div class="card">
+      <h3>לאן הולכת האנרגיה</h3>
+      <canvas id="cv-bars" class="bars"></canvas>
+      <div class="legend"><span><i style="background:var(--green)"></i>פוטנציאלית</span><span><i style="background:var(--warn)"></i>קינטית</span><span><i style="background:var(--gold)"></i>טמפרטורה</span></div>
+      <div class="btnrow">
+        <button class="bigbtn" id="go">שחררו את הכדור</button>
+        <button class="bigbtn alt" id="rev">היפוך כל המהירויות</button>
+      </div>
+      <div class="btnrow">
+        <button class="ghost" id="reset">איפוס</button>
+        <button class="ghost toggle" id="freeze" aria-pressed="false">הקפאת הקפיצים: כבויה</button>
+      </div>
+      <div class="note" id="note">הכדור תלוי למעלה, קר לגמרי: כל האנרגיה שלו היא אנרגיה פוטנציאלית של הגובה. לחצו ״שחררו״.</div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:12px">
+    <div class="card">
+      <h3>האנרגיה לאורך הזמן <span class="hint">· איזה חלק מהאנרגיה נמצא בכל מקום</span></h3>
+      <canvas id="cv-graph" class="graph"></canvas>
+      <div class="legend"><span><i style="background:var(--primary)"></i>מרכז המסה</span><span><i style="background:var(--accent)"></i>סיבוב</span><span><i style="background:var(--warn)"></i>פנימית — בקפיצים</span></div>
+    </div>
+    <div class="card">
+      <h3>ההגדרות</h3>
+      <div class="ctl"><label>מספר האטומים</label>
+        <div class="seg" id="nseg"><button data-n="2" aria-pressed="false">2</button><button data-n="4" aria-pressed="false">4</button><button data-n="16" aria-pressed="true">16</button><button data-n="64" aria-pressed="false">64</button></div></div>
+      <div class="ctl"><label>מהירות ההרצה</label>
+        <div class="seg" id="spseg"><button data-s="1" aria-pressed="true">×1</button><button data-s="4" aria-pressed="false">×4</button><button data-s="15" aria-pressed="false">×15 · ״הולכים לשתות קפה״</button></div></div>
+      <div class="ctl"><label>קשיחות הקפיצים <span class="v" id="Kv">K = 1.0</span></label><input type="range" id="K" min="0.3" max="3" step="0.1" value="1"></div>
+      <div class="ctl"><label>כבידה <span class="v" id="Gv">G = 0.0040</span></label><input type="range" id="G" min="0" max="0.008" step="0.0005" value="0.004"></div>
+      <button class="mysterybtn" id="statesb" aria-pressed="false">★ ספרו מצבים</button>
+    </div>
+  </div>
+  <div class="card states" id="states" style="display:none; margin-top:12px">
+    <h3>★ כמה מצבים יש לאנרגיה הזו? <span class="hint">· מודל ספירה: מחלקים את האנרגיה ל-20 מנות שוות</span></h3>
+    <div class="wrap2">
+      <div>
+        <div class="reads" id="st-reads"></div>
+        <div class="note" id="st-note"></div>
+      </div>
+      <div>
+        <canvas id="cv-q" class="qcv"></canvas>
+        <p class="tiny">התמונה של הרגע הזה: כמה מנות אנרגיה יש בכל ״סל״. הסל הראשון הוא מרכז המסה, השני הוא הסיבוב, ואחריהם סל לכל אטום — האנרגיה הפנימית שלו ושל הקפיצים שלו.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ב המשימות ============ -->
+<div class="pane" id="pane-b">
+  <div class="tasks" id="tasks"></div>
+</div>
+
+<!-- ============ ג איך זה בנוי ============ -->
+<div class="pane" id="pane-c">
+  <div class="intro">
+    <div class="card"><h3>הכדור</h3><p>16 אטומים בסריג של 4 על 4, וקפיץ בין כל שני שכנים — גם באלכסון. בסך הכול 42 קפיצים. כל קפיץ מקיים את חוק הוק, <span class="m">F = −K(d − L)</span>, כש-<span class="m">L</span> הוא האורך במנוחה. באפשרויות האחרות: 2 אטומים וקפיץ אחד; 4 אטומים ו-6 קפיצים; 64 אטומים ו-210 קפיצים. הגודל של הכדור זהה בכולן.</p></div>
+    <div class="card"><h3>הקופסה</h3><p>הכבידה פועלת על כל אטום. הרצפה, התקרה והקירות הם ״קפיצים״ בעצמם: אטום שנכנס לתוכם נדחף חזרה, בלי שום איבוד אנרגיה. אין חיכוך ואין חום שבורח החוצה. האנרגיה הכוללת קבועה, והסימולציה מציגה אותה כל הזמן כדי שתוכלו לבדוק.</p></div>
+    <div class="card"><h3>איך מחשבים את התנועה</h3><p>בכל צעד זמן קטן מחשבים את הכוח על כל אטום, ומזיזים את כולם לפי החוק השני של ניוטון, בשיטה שנקראת <b>ורלה</b>. לשיטה הזו יש תכונה חשובה: היא הפיכה בזמן. אם הופכים את כל המהירויות, האטומים חוזרים בדיוק במסלול שלהם — במחשב אידיאלי, לנצח. במחשב אמיתי כל מספר מעוגל ל-16 ספרות, וזה כל ההבדל: ראו משימה 3.</p></div>
+    <div class="card"><h3>שלושת סוגי האנרגיה</h3><p><b>מרכז המסה</b>: הגובה של הכדור כולו והמהירות שלו כולו. <b>סיבוב</b>: הכדור כולו מסתובב סביב מרכז המסה. <b>פנימית</b>: כל מה שנשאר — האטומים רועדים זה ביחס לזה, והקפיצים נמתחים ומתכווצים. גם הדחיסה הרגעית של הרצפה ברגע הפגיעה נספרת כאן. ה״טמפרטורה״ היא האנרגיה הקינטית הפנימית הממוצעת לכל דרגת חופש פנימית, ביחידות של הסימולציה.</p></div>
+    <div class="card gold"><h3>מודל הספירה ב״ספרו מצבים״</h3><p>כדי לספור, מחלקים את האנרגיה הזמינה ל-20 מנות שוות, ושואלים: בכמה דרכים אפשר לפזר 20 מנות בין הסלים — מרכז המסה, הסיבוב, וסל לכל אטום? זו ספירה פשוטה של צירופים. בכל רגע הסימולציה מעגלת את חלוקת האנרגיה האמיתית לתמונה כזו ושומרת אותה, וכך נספרות התמונות השונות שכבר הופיעו.</p><p><b>ההנחה החשובה:</b> שכל התמונות סבירות באותה מידה. זו לא עובדה מובנת מאליה, זו ההנחה היסודית של המכניקה הסטטיסטית, ונחזור אליה ביחידות 6 ו-7.</p></div>
+    <div class="card"><h3>מאיפה הרעיון</h3><p>הסימולציה בנויה על הרעיון של <b>״החוק השני״</b>, סימולציה ותיקה של המחלקה לכימיה באוניברסיטת קליפורניה באירוויין: 16 אטומים, 42 קפיצים, ומדי אנרגיה של מרכז המסה, הסיבוב והאנרגיה הפנימית. נוספו כאן: מספר האטומים, השעון של ההיפוך, הטמפרטורה, הגרף לאורך זמן, וספירת המצבים.</p></div>
+  </div>
+</div>
+
+<div class="foot">תרמודינמיקה לכימאים · אודיסיאה שנה ב׳ · ד״ר עומרי מורג</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const R_GAS = 8.314;
+function setupCanvas(canvas){
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(10, Math.floor(rect.width)), cssH = Math.max(10, Math.floor(rect.height));
+  if(rect.width < 2 || rect.height < 2) return null; /* לשונית מוסתרת */
+  if(canvas.width !== Math.round(cssW*dpr) || canvas.height !== Math.round(cssH*dpr)){ canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr); }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+  return { ctx, w:cssW, h:cssH };
+}
+/* עברית ומספרים לעולם לא באותה מחרוזת; הכיוון נקבע במפורש בכל fillText */
+function heT(ctx,t,x,y,a){ ctx.save(); ctx.direction='rtl'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function ltrT(ctx,t,x,y,a){ ctx.save(); ctx.direction='ltr'; ctx.textAlign=a||'center'; ctx.fillText(t,x,y); ctx.restore(); }
+function fmt(v,d){ if(!Number.isFinite(v)) return '—'; return v.toFixed(d===undefined?3:d); }
+function fmtS(v,d){ if(!Number.isFinite(v)) return '—'; const s=Math.abs(v).toFixed(d===undefined?3:d); return (v<0 && +s!==0?'-':'')+s; }
+function niceTicks(a,b,px,per){
+  const n=Math.max(2, Math.floor(px/per)); const raw=(b-a)/n;
+  const p=Math.pow(10,Math.floor(Math.log10(raw))); const m=raw/p;
+  const step=(m<1.5?1:m<3.5?2:m<7.5?5:10)*p;
+  const out=[]; for(let t=Math.ceil(a/step-1e-9)*step; t<=b+1e-9; t+=step) out.push(+t.toFixed(10));
+  return out;
+}
+function plot(x0,x1,y0,y1,xr,yr){
+  return { x0,x1,y0,y1, X:x=>x0+(x-xr[0])/(xr[1]-xr[0])*(x1-x0), Y:y=>y0-(y-yr[0])/(yr[1]-yr[0])*(y0-y1),
+           invX:px=>xr[0]+(px-x0)/(x1-x0)*(xr[1]-xr[0]), invY:py=>yr[0]+(y0-py)/(y0-y1)*(yr[1]-yr[0]) };
+}
+function frame(ctx,P,xr,yr,opt){
+  opt=opt||{};
+  ctx.save();
+  ctx.textBaseline='middle'; ctx.font='700 11.5px Heebo, system-ui, sans-serif';
+  ctx.strokeStyle=css('--line'); ctx.lineWidth=1; ctx.beginPath();
+  const xt=niceTicks(xr[0],xr[1],P.x1-P.x0,70), yt=niceTicks(yr[0],yr[1],P.y0-P.y1,50);
+  for(const t of xt){ ctx.moveTo(P.X(t),P.y1); ctx.lineTo(P.X(t),P.y0); }
+  for(const t of yt){ ctx.moveTo(P.x0,P.Y(t)); ctx.lineTo(P.x1,P.Y(t)); }
+  ctx.stroke();
+  ctx.strokeStyle=css('--muted'); ctx.lineWidth=1.2; ctx.strokeRect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1);
+  ctx.fillStyle=css('--muted');
+  for(const t of xt){ ltrT(ctx, opt.xfmt?opt.xfmt(t):String(t), P.X(t), P.y0+11); }
+  for(const t of yt){ ltrT(ctx, opt.yfmt?opt.yfmt(t):String(t), P.x0-5, P.Y(t), 'right'); }
+  ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif';
+  if(opt.xlab) ltrT(ctx,opt.xlab,(P.x0+P.x1)/2,P.y0+26);
+  if(opt.ylab){ ctx.save(); ctx.translate(P.x0-34,(P.y0+P.y1)/2); ctx.rotate(-Math.PI/2); ltrT(ctx,opt.ylab,0,0); ctx.restore(); }
+  if(opt.title){ ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif'; heT(ctx,opt.title,(P.x0+P.x1)/2,P.y1-11); }
+  ctx.restore();
+}
+/* מפת צבע: ערך בין -1 ל-1 → תכלת..אפור..חמרה */
+function divColor(t){
+  t=Math.max(-1,Math.min(1,t));
+  const g=[200,200,200], w=[192,85,58], s=[123,154,204];
+  const c = t>=0 ? g.map((v,i)=>v+(w[i]-v)*t) : g.map((v,i)=>v+(s[i]-v)*(-t));
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+/* מפת גובה: ערך 0..1 → שמנת..כחול */
+function heightColor(t){
+  t=Math.max(0,Math.min(1,t));
+  const a=[251,248,241], b=[31,78,121];
+  const c=a.map((v,i)=>v+(b[i]-v)*t);
+  return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+}
+function colorMap(ctx,P,xr,yr,fn,scaleFn,nx,ny){
+  nx=nx||60; ny=ny||45;
+  const cw=(P.x1-P.x0)/nx, ch=(P.y0-P.y1)/ny;
+  for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+    const x=xr[0]+(i+0.5)/nx*(xr[1]-xr[0]), y=yr[0]+(j+0.5)/ny*(yr[1]-yr[0]);
+    const v=fn(x,y); if(!Number.isFinite(v)) continue;
+    ctx.fillStyle=scaleFn(v); ctx.fillRect(P.x0+i*cw, P.y0-(j+1)*ch, cw+0.6, ch+0.6);
+  }
+}
+/* קווי גובה בשיטת ריבועים צועדים — פשוטה ומספיקה */
+function contours(ctx,P,xr,yr,fn,levels,color,nx,ny){
+  nx=nx||70; ny=ny||52;
+  const g=[]; for(let i=0;i<=nx;i++){ g.push([]); for(let j=0;j<=ny;j++){ g[i].push(fn(xr[0]+i/nx*(xr[1]-xr[0]), yr[0]+j/ny*(yr[1]-yr[0]))); } }
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.1; ctx.beginPath();
+  const px=(i)=>P.X(xr[0]+i/nx*(xr[1]-xr[0])), py=(j)=>P.Y(yr[0]+j/ny*(yr[1]-yr[0]));
+  for(const L of levels){
+    for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){
+      const v=[g[i][j],g[i+1][j],g[i+1][j+1],g[i][j+1]]; if(v.some(t=>!Number.isFinite(t))) continue;
+      const pts=[];
+      const edge=(a,b,xa,ya,xb,yb)=>{ if((a-L)*(b-L)<0){ const t=(L-a)/(b-a); pts.push([xa+(xb-xa)*t, ya+(yb-ya)*t]); } };
+      edge(v[0],v[1],px(i),py(j),px(i+1),py(j)); edge(v[1],v[2],px(i+1),py(j),px(i+1),py(j+1));
+      edge(v[2],v[3],px(i+1),py(j+1),px(i),py(j+1)); edge(v[3],v[0],px(i),py(j+1),px(i),py(j));
+      if(pts.length>=2){ ctx.moveTo(pts[0][0],pts[0][1]); ctx.lineTo(pts[1][0],pts[1][1]); if(pts.length===4){ ctx.moveTo(pts[2][0],pts[2][1]); ctx.lineTo(pts[3][0],pts[3][1]); } }
+    }
+  }
+  ctx.stroke(); ctx.restore();
+}
+function minmax(fn,xr,yr,n){ n=n||40; let lo=Infinity,hi=-Infinity; for(let i=0;i<=n;i++) for(let j=0;j<=n;j++){ const v=fn(xr[0]+i/n*(xr[1]-xr[0]), yr[0]+j/n*(yr[1]-yr[0])); if(Number.isFinite(v)){ lo=Math.min(lo,v); hi=Math.max(hi,v);} } if(!(hi>lo)){hi=lo+1;} return [lo,hi]; }
+function dot(ctx,x,y,r,color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke(); }
+function arrow(ctx,x0,y0,x1,y1,color,w){ ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=w||2.4; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0), L=8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1-L*Math.cos(a-0.45),y1-L*Math.sin(a-0.45)); ctx.lineTo(x1-L*Math.cos(a+0.45),y1-L*Math.sin(a+0.45)); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function simpson(f,a,b,n){ n=n||400; if(n%2)n++; const h=(b-a)/n; let s=f(a)+f(b); for(let i=1;i<n;i++){ s+=f(a+i*h)*(i%2?4:2); } return s*h/3; }
+/* גרירה על קנבס: מחזיר קואורדינטות CSS */
+function dragOn(canvas, onmove){
+  let down=false;
+  const pos=e=>{ const r=canvas.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [t.clientX-r.left, t.clientY-r.top]; };
+  canvas.addEventListener('pointerdown',e=>{ down=true; canvas.setPointerCapture(e.pointerId); onmove(...pos(e)); });
+  canvas.addEventListener('pointermove',e=>{ if(down) onmove(...pos(e)); });
+  canvas.addEventListener('pointerup',()=>{down=false;}); canvas.addEventListener('pointercancel',()=>{down=false;});
+}
+
+/* ============================================================
+   המנוע: אטומים וקפיצים, Verlet מהירות, קירות קפיציים
+   ============================================================ */
+const SIZE=3.2, BOXW=40, BOXH=30, TOP=4, TILT=0.04, QUANTA=20;
+function makeBall(N,K,G){
+  const dimer=N===2, n=dimer?2:Math.round(Math.sqrt(N));
+  const S={W:BOXW,H:BOXH,K,Kw:1,G,m:1,dt:N>=64?0.02:0.05,x:[],y:[],vx:[],vy:[],fx:[],fy:[],springs:[],t:0,frozen:false,NA:N};
+  let pts=[];
+  if(dimer) pts=[[-SIZE/2,0],[SIZE/2,0]];
+  else { const a=SIZE/(n-1); for(let i=0;i<n;i++) for(let j=0;j<n;j++) pts.push([(i-(n-1)/2)*a,(j-(n-1)/2)*a]); }
+  const ang=(dimer?0:Math.PI/4)+TILT, c=Math.cos(ang), s=Math.sin(ang);
+  S.rest=pts.map(([px,py])=>[c*px-s*py, s*px+c*py]);
+  const cx=BOXW/2, cy=BOXH-TOP;
+  for(const [rx,ry] of S.rest){ S.x.push(cx+rx); S.y.push(cy+ry); S.vx.push(0); S.vy.push(0); S.fx.push(0); S.fy.push(0); }
+  S.N=S.x.length;
+  const id=(i,j)=>i*n+j, add=(p,q)=>S.springs.push([p,q,Math.hypot(S.x[p]-S.x[q],S.y[p]-S.y[q])]);
+  if(dimer) add(0,1);
+  else for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    if(i+1<n) add(id(i,j),id(i+1,j)); if(j+1<n) add(id(i,j),id(i,j+1));
+    if(i+1<n&&j+1<n){ add(id(i,j),id(i+1,j+1)); add(id(i+1,j),id(i,j+1)); } }
+  /* גובה מרכז המסה כשהכדור שוכב בשקט על הרצפה, בצד הנמוך ביותר — נקודת האפס של האנרגיה הזמינה */
+  let best=Infinity; for(let k=0;k<720;k++){ const th=k*Math.PI/360, ct=Math.cos(th), st=Math.sin(th); let lo=0; for(const [rx,ry] of S.rest){ lo=Math.min(lo, st*rx+ct*ry); } best=Math.min(best,-lo); }
+  S.yrest=dimer?0:best;
+  S.ue=new Float64Array(S.N);   /* אנרגיה פוטנציאלית לכל אטום: חצי מכל קפיץ, והקיר */
+  S.I0=S.rest.reduce((a,[rx,ry])=>a+rx*rx+ry*ry,0);
+  forces(S); return S;
+}
+function wall(S,i,F){ const {x,y,Kw,W,H}=S; let fx=0,fy=0,u=0;
+  if(y[i]<0){ fy-=Kw*y[i]; u+=0.5*Kw*y[i]*y[i]; } if(y[i]>H){ fy-=Kw*(y[i]-H); u+=0.5*Kw*(y[i]-H)**2; }
+  if(x[i]<0){ fx-=Kw*x[i]; u+=0.5*Kw*x[i]*x[i]; } if(x[i]>W){ fx-=Kw*(x[i]-W); u+=0.5*Kw*(x[i]-W)**2; }
+  F[0]=fx; F[1]=fy; return u; }
+const _F=[0,0];
+function forces(S){
+  const {x,y,fx,fy,K,G,m,ue}=S, N=S.N; let Us=0,Uw=0,Ug=0;
+  for(let i=0;i<N;i++){ const u=wall(S,i,_F); fx[i]=_F[0]; fy[i]=_F[1]-m*G; Uw+=u; ue[i]=u; Ug+=m*G*y[i]; }
+  if(!S.frozen) for(const sp of S.springs){ const p=sp[0],q=sp[1],L=sp[2]; const dx=x[q]-x[p], dy=y[q]-y[p], d=Math.hypot(dx,dy), e=d-L, f=S.K*e/d;
+    fx[p]+=f*dx; fy[p]+=f*dy; fx[q]-=f*dx; fy[q]-=f*dy; const u=0.5*S.K*e*e; Us+=u; ue[p]+=u/2; ue[q]+=u/2; sp[3]=e/L; }
+  S.Us=Us; S.Uw=Uw; S.Ug=Ug;
+}
+function step(S){
+  if(S.frozen) return rigidStep(S);
+  const {x,y,vx,vy,fx,fy,m,dt}=S, N=S.N;
+  for(let i=0;i<N;i++){ vx[i]+=0.5*dt*fx[i]/m; vy[i]+=0.5*dt*fy[i]/m; x[i]+=dt*vx[i]; y[i]+=dt*vy[i]; }
+  forces(S);
+  for(let i=0;i<N;i++){ vx[i]+=0.5*dt*fx[i]/m; vy[i]+=0.5*dt*fy[i]/m; }
+  S.t+=dt;
+}
+/* גוף קשיח: מרכז מסה + זווית. אותם קירות, אותה כבידה, בלי דרגות חופש פנימיות */
+function rigidPlace(S){ const R=S.R, c=Math.cos(R.th), s=Math.sin(R.th);
+  for(let i=0;i<S.N;i++){ const [rx,ry]=S.rest[i], ax=c*rx-s*ry, ay=s*rx+c*ry;
+    S.x[i]=R.X+ax; S.y[i]=R.Y+ay; S.vx[i]=R.VX-R.om*ay; S.vy[i]=R.VY+R.om*ax; } }
+function rigidForces(S){ const R=S.R; let Fx=0,Fy=-S.m*S.G*S.N,T=0,Uw=0;
+  for(let i=0;i<S.N;i++){ const u=wall(S,i,_F); Uw+=u; S.ue[i]=u; Fx+=_F[0]; Fy+=_F[1]; T+=(S.x[i]-R.X)*_F[1]-(S.y[i]-R.Y)*_F[0]; }
+  R.Fx=Fx; R.Fy=Fy; R.T=T; S.Uw=Uw; S.Us=0; S.Ug=S.m*S.G*S.N*R.Y; for(const sp of S.springs) sp[3]=0; }
+function rigidStep(S){ const R=S.R, M=S.m*S.N, I=S.m*S.I0, dt=S.dt;
+  R.VX+=0.5*dt*R.Fx/M; R.VY+=0.5*dt*R.Fy/M; R.om+=0.5*dt*R.T/I;
+  R.X+=dt*R.VX; R.Y+=dt*R.VY; R.th+=dt*R.om; rigidPlace(S); rigidForces(S);
+  R.VX+=0.5*dt*R.Fx/M; R.VY+=0.5*dt*R.Fy/M; R.om+=0.5*dt*R.T/I; rigidPlace(S); S.t+=dt; }
+function setFrozen(S,on){ S.frozen=on; if(on){ let X=0,Y=0; for(let i=0;i<S.N;i++){X+=S.x[i];Y+=S.y[i];} S.R={X:X/S.N,Y:Y/S.N,VX:0,VY:0,th:0,om:0}; rigidPlace(S); rigidForces(S); } else forces(S); }
+function energies(S){
+  const {x,y,vx,vy,m}=S, N=S.N, M=m*N;
+  let X=0,Y=0,VX=0,VY=0,KE=0; for(let i=0;i<N;i++){ X+=x[i];Y+=y[i];VX+=vx[i];VY+=vy[i]; KE+=0.5*m*(vx[i]*vx[i]+vy[i]*vy[i]); }
+  X/=N;Y/=N;VX/=N;VY/=N;
+  let Lz=0,I=0; for(let i=0;i<N;i++){ const rx=x[i]-X, ry=y[i]-Y; Lz+=m*(rx*(vy[i]-VY)-ry*(vx[i]-VX)); I+=m*(rx*rx+ry*ry); }
+  const om=I>0?Lz/I:0, Kcom=0.5*M*(VX*VX+VY*VY), Krot=I>0?0.5*Lz*Lz/I:0, Kint=Math.max(0,KE-Kcom-Krot);
+  const Ugc=M*S.G*(Y-S.yrest), E=KE+S.Us+S.Uw+S.Ug, Eav=E-M*S.G*S.yrest;
+  return {X,Y,VX,VY,om,Kcom,Ugc,Krot,Kint,Upot:S.Us+S.Uw,E,Eav};
+}
+/* חלוקת האנרגיה לסלים: מרכז מסה, סיבוב, ואטום-אטום */
+function bins(S,e){
+  const out=new Array(S.N+2); out[0]=Math.max(0,e.Kcom+e.Ugc); out[1]=e.Krot;
+  for(let i=0;i<S.N;i++){ const rx=S.x[i]-e.X, ry=S.y[i]-e.Y, ux=S.vx[i]-e.VX+e.om*ry, uy=S.vy[i]-e.VY-e.om*rx;
+    out[i+2]=0.5*S.m*(ux*ux+uy*uy)+S.ue[i]; }
+  return out;
+}
+function quantize(v,q){ const tot=v.reduce((a,b)=>a+b,0); if(!(tot>0)) return v.map(()=>0);
+  const raw=v.map(x=>x/tot*q), fl=raw.map(Math.floor); let left=q-fl.reduce((a,b)=>a+b,0);
+  raw.map((r,i)=>[r-fl[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(([,i])=>fl[i]++); return fl; }
+function binom(n,k){ let r=1n; for(let i=1n;i<=BigInt(k);i++){ r=r*(BigInt(n)-BigInt(k)+i)/i; } return r; }
+function fmtBig(b){ const s=b.toString(); if(s.length<=6) return Number(s).toLocaleString('en-US'); return s[0]+'.'+s.slice(1,3)+'×10'+sup(s.length-1); }
+function sup(n){ const m='⁰¹²³⁴⁵⁶⁷⁸⁹'; return String(n).split('').map(d=>m[+d]).join(''); }
+
+/* ============================================================
+   מצב והרצה
+   ============================================================ */
+const ST={N:16,K:1,G:0.004,speed:1,run:false,released:false,anim:null,S:null,e0:null,hist:[],
+  visited:new Set(),returns:0,inTop:true,lastQ:null,revAt:null,revMax:0,revCount:0,showStates:false,frozenReq:false};
+const SIMPERSEC=75;   /* יחידות זמן של הסימולציה לשנייה, במהירות ×1 */
+function resetSim(){
+  stop(); ST.S=makeBall(ST.N,ST.K,ST.G); if(ST.frozenReq) setFrozen(ST.S,true);
+  ST.e0=energies(ST.S); ST.released=false; ST.hist=[]; ST.visited=new Set(); ST.returns=0; ST.inTop=true; ST.revAt=null; ST.revMax=0; ST.lastRevT=0;
+  const q=quantize(bins(ST.S,ST.e0),QUANTA); ST.lastQ=q; ST.visited.add(q.join(','));
+  $('go').textContent='שחררו את הכדור'; $('rev').disabled=true;
+  setNote(ST.frozenReq?'הקפיצים נעולים: הכדור הוא גוף קשיח, כמו בקורס במכניקה. לחצו ״שחררו״ וראו כמה זמן הוא קופץ.':'הכדור תלוי למעלה, קר לגמרי: כל האנרגיה שלו היא אנרגיה פוטנציאלית של הגובה. לחצו ״שחררו״.');
+  drawAll();
+}
+function setNote(h){ $('note').innerHTML=h; }
+function start(){ if(ST.run) return; if(!ST.released) setNote(ST.S.frozen?'הכדור נופל כגוף קשיח. צפו בעמודה של מרכז המסה: האנרגיה עוברת בין ירוק לאדום וחזרה — ונשארת שם.':'צפו בעמודות: בנפילה הירוק של מרכז המסה הופך לאדום. בכל פגיעה ברצפה חלק מהאנרגיה עובר לעמודה הפנימית — ולא חוזר.'); ST.run=true; ST.released=true; $('go').textContent='עצרו את הזמן'; $('rev').disabled=false; let last=performance.now();
+  const loop=now=>{ if(!ST.run) return; const S=ST.S; const target=Math.min(0.05,(now-last)/1000)*SIMPERSEC*ST.speed; last=now;
+    const ns=Math.max(1,Math.round(target/S.dt)); for(let k=0;k<ns;k++) step(S);
+    tick(); drawAll(); ST.anim=requestAnimationFrame(loop); };
+  ST.anim=requestAnimationFrame(loop); }
+function stop(){ ST.run=false; if(ST.anim){ cancelAnimationFrame(ST.anim); ST.anim=null; } if(ST.released) $('go').textContent='המשיכו'; }
+function tick(){
+  const S=ST.S, e=energies(S), Eav=e.Eav;
+  const t=S.t/SIMPERSEC;
+  ST.hist.push([t,(e.Kcom+e.Ugc)/Eav,e.Krot/Eav,(e.Kint+e.Upot)/Eav,tempOf(S,e)]); if(ST.hist.length>4000) ST.hist.splice(0,ST.hist.length-4000);
+  const q=quantize(bins(S,e),QUANTA); const key=q.join(','); ST.visited.add(key); ST.lastQ=q;
+  const top=q[0]===QUANTA; if(top&&!ST.inTop) ST.returns++; ST.inTop=top;
+  if(ST.revAt!==null){ ST.revMax=Math.max(ST.revMax,e.Ugc/Eav);
+    const back=t-ST.revAt.t; if(back>=ST.revAt.dt && !ST.revAt.done){ ST.revAt.done=true; revVerdict(); } }
+}
+function tempOf(S,e){ const f=S.frozen?0:(S.N===2?1:2*S.N-3); return f>0?2*e.Kint/f:0; }
+function revVerdict(){ const p=Math.round(ST.revMax*100); const dt=ST.revAt.dt.toFixed(1);
+  if(p>=95) setNote(`<b>הכדור חזר.</b> הפכתם את המהירויות אחרי <span class="m">${dt} s</span>, ואחרי אותו זמן בדיוק הכדור טיפס שוב ל-<span class="m">${p}%</span> מהגובה ההתחלתי, קר כמו בהתחלה. החוקים של ניוטון הפיכים: אין בהם שום דבר שאוסר את זה.`);
+  else setNote(`<b>הכדור לא חזר.</b> הפכתם את המהירויות אחרי <span class="m">${dt} s</span>, והשיא אחרי ההיפוך הוא רק <span class="m">${p}%</span> מהגובה ההתחלתי. החוקים אותם חוקים, וההיפוך היה מושלם — עד הספרה ה-16 אחרי הנקודה. השגיאה הזעירה של העיגול גדלה עם הזמן, עד שהמסלול חזרה אבד. כדי לחזור, צריך לכוון את כל האטומים בדיוק מושלם. וככל שעובר זמן, הדיוק הנדרש גדל.`); }
+function doReverse(){ const S=ST.S; if(!ST.released) return; for(let i=0;i<S.N;i++){ S.vx[i]=-S.vx[i]; S.vy[i]=-S.vy[i]; }
+  if(S.frozen){ const R=S.R; R.VX=-R.VX; R.VY=-R.VY; R.om=-R.om; }
+  const now=S.t/SIMPERSEC, dt=now-(ST.lastRevT||0); ST.lastRevT=now; ST.revAt={t:now,dt,done:false}; ST.revMax=0;
+  setNote(`הפכתם את המהירויות של כל האטומים אחרי <span class="m">${dt.toFixed(1)} s</span>. אם הכול מדויק, הכדור יחזור במסלול שלו אחורה ויטפס לגובה ההתחלתי. נחכה אותו זמן ונראה.`);
+  if(!ST.run) start(); }
+
+/* ============================================================
+   ציור
+   ============================================================ */
+function drawAll(){ try{ drawBox(); drawBars(); drawGraph(); if(ST.showStates) drawStates(); updateTexts(); }catch(err){ console.error(err); } }
+function updateTexts(){ const S=ST.S, e=energies(S); $('clock').textContent=(S.t/SIMPERSEC).toFixed(1)+' s';
+  const dev=(e.E-ST.e0.E)/Math.abs(ST.e0.Eav||1)*100; $('etot').textContent=e.E.toFixed(4)+'  ('+(dev>=0?'+':'−')+Math.abs(dev).toFixed(2)+'%)'; }
+function drawBox(){
+  const g=setupCanvas($('cv-box')); if(!g) return; const {ctx,w,h}=g, S=ST.S;
+  const sc=Math.min((w-16)/S.W,(h-16)/S.H), ox=(w-S.W*sc)/2, oy=(h+S.H*sc)/2;
+  const X=x=>ox+x*sc, Y=y=>oy-y*sc;
+  ctx.fillStyle=css('--soft'); ctx.fillRect(X(0),Y(S.H),S.W*sc,S.H*sc);
+  ctx.strokeStyle=css('--muted'); ctx.lineWidth=2; ctx.strokeRect(X(0),Y(S.H),S.W*sc,S.H*sc);
+  /* קו הגובה ההתחלתי */
+  ctx.setLineDash([5,5]); ctx.strokeStyle=css('--line'); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(X(0),Y(ST.e0.Y)); ctx.lineTo(X(S.W),Y(ST.e0.Y)); ctx.stroke(); ctx.setLineDash([]);
+  const pr=css('--primary'), hot=css('--warn'), gold=css('--gold');
+  for(const sp of S.springs){ const st=Math.min(1,Math.abs(sp[3]||0)*6); ctx.strokeStyle=st<0.04?pr:mix(pr,(sp[3]>0?gold:hot),st); ctx.lineWidth=Math.max(1.2,sc*0.09);
+    ctx.beginPath(); ctx.moveTo(X(S.x[sp[0]]),Y(S.y[sp[0]])); ctx.lineTo(X(S.x[sp[1]]),Y(S.y[sp[1]])); ctx.stroke(); }
+  const r=Math.max(2,Math.min(sc*0.22, S.N>=64?sc*0.14:sc*0.22));
+  for(let i=0;i<S.N;i++){ ctx.fillStyle=pr; ctx.beginPath(); ctx.arc(X(S.x[i]),Y(S.y[i]),r,0,2*Math.PI); ctx.fill(); }
+  ctx.fillStyle=css('--muted'); ctx.font='700 12px Heebo, system-ui, sans-serif'; heT(ctx,'הגובה ההתחלתי',X(S.W)-6,Y(ST.e0.Y)-8,'right');
+}
+function mix(a,b,t){ const pa=hex(a),pb=hex(b); return `rgb(${pa.map((v,i)=>Math.round(v+(pb[i]-v)*t)).join(',')})`; }
+function hex(c){ c=c.trim(); if(c.startsWith('#')){ const n=parseInt(c.slice(1),16); return [n>>16&255,n>>8&255,n&255]; } const m=c.match(/\d+/g); return m?m.slice(0,3).map(Number):[0,0,0]; }
+function drawBars(){
+  const g=setupCanvas($('cv-bars')); if(!g) return; const {ctx,w,h}=g, S=ST.S, e=energies(S), E=e.Eav||1;
+  const cols=[ {lt:'COM',he:'מרכז המסה',pe:Math.max(0,e.Ugc),ke:e.Kcom},{lt:'ROT',he:'סיבוב',pe:0,ke:e.Krot},{lt:'INT',he:'פנימית',pe:e.Upot,ke:e.Kint} ];
+  const top=14, bot=h-40, H=bot-top, n=4, cw=w/n, bw=Math.min(54,cw*0.55);
+  ctx.strokeStyle=css('--line'); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(6,bot); ctx.lineTo(w-6,bot); ctx.moveTo(6,top); ctx.lineTo(w-6,top); ctx.stroke();
+  /* RTL: העמודה הראשונה מימין */
+  cols.forEach((c,k)=>{ const cx=w-cw*(k+0.5), x0=cx-bw/2; const hk=Math.max(0,c.ke/E)*H, hp=Math.max(0,c.pe/E)*H;
+    ctx.fillStyle=css('--warn'); ctx.fillRect(x0,bot-hk,bw,hk); ctx.fillStyle=css('--green'); ctx.fillRect(x0,bot-hk-hp,bw,hp);
+    ctx.strokeStyle=css('--muted'); ctx.strokeRect(x0,top,bw,H);
+    ctx.fillStyle=css('--primary'); ctx.font='800 13px Heebo, system-ui, sans-serif'; ltrT(ctx,c.lt,cx,bot+13);
+    ctx.fillStyle=css('--muted'); ctx.font='700 11.5px Heebo, system-ui, sans-serif'; heT(ctx,c.he,cx,bot+29); });
+  /* מדחום */
+  const T=tempOf(S,e), Tref=thermoRef(S), cx=w-cw*3.5, tw=Math.min(22,bw*0.45), ht=Math.min(1,T/Tref)*H;
+  ctx.fillStyle=css('--gold'); ctx.fillRect(cx-tw/2,bot-ht,tw,ht); ctx.strokeStyle=css('--muted'); ctx.strokeRect(cx-tw/2,top,tw,H);
+  ctx.beginPath(); ctx.arc(cx,bot+4,tw*0.7,0,2*Math.PI); ctx.fillStyle=css('--gold'); ctx.fill();
+  ctx.fillStyle=css('--muted'); ctx.font='700 11.5px Heebo, system-ui, sans-serif'; heT(ctx,'טמפרטורה',cx,bot+29);
+}
+/* קנה מידה למדחום: הטמפרטורה אם כל האנרגיה הזמינה הייתה פנימית ומתחלקת שווה בין קינטית לפוטנציאלית */
+function thermoRef(S){ const f=S.N===2?1:2*S.N-3; return (ST.e0.Eav)/f; }
+function drawGraph(){
+  const g=setupCanvas($('cv-graph')); if(!g) return; const {ctx,w,h}=g;
+  const hs=ST.hist, tmax=Math.max(10,hs.length?hs[hs.length-1][0]:0), tmin=Math.max(0,tmax-60);
+  const P=plot(48,w-14,h-38,14,[tmin,tmax],[0,1]);
+  frame(ctx,P,[tmin,tmax],[0,1],{xlab:'t (s)',ylab:'E / E₀',yfmt:v=>Math.round(v*100)+'%'});
+  const line=(k,col,wd)=>{ ctx.strokeStyle=css(col); ctx.lineWidth=wd||2.2; ctx.beginPath(); let st=false; for(const r of hs){ if(r[0]<tmin) continue; const X=P.X(r[0]),Y=P.Y(Math.max(0,Math.min(1,r[k]))); st?ctx.lineTo(X,Y):(ctx.moveTo(X,Y),st=true); } ctx.stroke(); };
+  ctx.save(); ctx.beginPath(); ctx.rect(P.x0,P.y1,P.x1-P.x0,P.y0-P.y1); ctx.clip();
+  line(1,'--primary'); line(2,'--accent'); line(3,'--warn'); ctx.restore();
+}
+function drawStates(){
+  const S=ST.S, B=S.N+2, Om=binom(QUANTA+B-1,QUANTA), secs=ST.S.t/SIMPERSEC;
+  const wait=Number(Om)/60, waitTxt=humanTime(wait);
+  const R=[ ['תמונות שונות שהמערכת כבר עברה בהן', ST.visited.size.toLocaleString('en-US'),'gold'],
+            ['כמה תמונות אפשריות בכלל', fmtBig(Om),''],
+            ['מהן — ״כל האנרגיה בגובה״', '1','acc'],
+            ['כמה פעמים הכדור חזר לשם מאז השחרור', String(ST.returns), ST.returns>0?'green':'warn'],
+            ['הסיכוי לתפוס אותו שם ברגע אקראי', '1 / '+fmtBig(Om),''],
+            ['זמן ההמתנה הממוצע, ב-60 תמונות לשנייה', waitTxt,'warn'] ];
+  $('st-reads').innerHTML=R.map(r=>'<div class="rd '+r[2]+'"><div class="t">'+r[0]+'</div><div class="n">'+r[1]+'</div></div>').join('');
+  $('st-note').innerHTML = ST.released
+    ? `אחרי <span class="m">${secs.toFixed(0)} s</span> המערכת כבר עברה ב-<b>${ST.visited.size.toLocaleString('en-US')}</b> תמונות שונות של חלוקת האנרגיה. רק אחת מכל <span class="m">${fmtBig(Om)}</span> היא ״הכול בגובה״. אם כל תמונה סבירה באותה מידה, הכדור לא יחזור לקפוץ גבוה לא בגלל איסור — אלא כי הוא פשוט לא ימצא את הדרך לשם.`
+    : `לפני השחרור יש רק תמונה אחת: כל 20 המנות בסל של מרכז המסה. שחררו וצפו במונה.`;
+  const g=setupCanvas($('cv-q')); if(!g) return; const {ctx,w,h}=g, q=ST.lastQ||[];
+  const n=q.length, gap=2, cw=Math.max(2,(w-20)/n-gap), top=14, bot=h-26, dot=Math.min(cw,(bot-top)/QUANTA-1);
+  for(let k=0;k<n;k++){ const x=w-10-(k+1)*(cw+gap); const col=k===0?css('--primary'):k===1?css('--accent'):css('--warn');
+    for(let j=0;j<q[k];j++){ ctx.fillStyle=col; ctx.fillRect(x,bot-(j+1)*(dot+1),cw,dot); }
+    ctx.strokeStyle=css('--line'); ctx.strokeRect(x,top,cw,bot-top); }
+  ctx.fillStyle=css('--muted'); ctx.font='700 11.5px Heebo, system-ui, sans-serif';
+  heT(ctx,'מרכז המסה',w-10-cw/2,bot+14,'right'); heT(ctx,'האטומים',10,bot+14,'left');
+}
+function humanTime(s){ if(s<60) return s.toFixed(0)+' s'; if(s<3600) return (s/60).toFixed(0)+' min'; if(s<86400) return (s/3600).toFixed(1)+' h'; const y=s/3.156e7; if(y<1) return (s/86400).toFixed(0)+' d'; if(y<1e4) return y.toFixed(y<10?1:0)+' y'; return (y/1e9>=0.1?(y/1e9).toFixed(1)+'×10⁹ y':y.toExponential(1)+' y'); }
+
+/* ============================================================
+   משימות
+   ============================================================ */
+const TASKS=[
+ {t:'1 · הכדור מפסיק לקפוץ', set:{N:16,frozen:false},
+  q:'שחררו את הכדור ותנו לו לקפוץ. בכל קפיצה הוא מגיע פחות גבוה. אבל אין חיכוך, והקופסה מבודדת. לאן הלכה האנרגיה? הסתכלו על ״האנרגיה הכוללת״ מתחת לקופסה: האם היא קטנה?',
+  a:'האנרגיה הכוללת לא זזה: <b>החוק הראשון</b>. היא רק עברה מקום — מהגובה ומהמהירות של הכדור כולו אל הקפיצים שבפנים, שרועדים עכשיו כל הזמן. לאנרגיה הזו קוראים חום: הכדור <b>התחמם</b>, וזה בדיוק מה שהמדחום מראה. במכניקה התעלמנו מהקפיצים האלה. בתרמודינמיקה הם חלק מהחשבון.'},
+ {t:'2 · נועלים את הקפיצים', set:{N:16,frozen:true},
+  q:'עכשיו הקפיצים נעולים: הכדור הוא גוף קשיח. שחררו אותו. מה שונה? כמה זמן הוא ממשיך לקפוץ?',
+  a:'הוא קופץ לנצח, כמו הכדור של הקורס במכניקה. אין לאנרגיה לאן ללכת חוץ מהגובה, המהירות והסיבוב — אז היא חוזרת לשם שוב ושוב. מה שעצר את הכדור במשימה 1 הם <b>דרגות החופש הפנימיות</b>. בלי מקום פנימי לאנרגיה, אין חום ואין כיוון לזמן.'},
+ {t:'3 · מריצים את הסרט אחורה', set:{N:16,frozen:false},
+  q:'שחררו, חכו לקפיצה הראשונה או השנייה, ולחצו ״היפוך כל המהירויות״. מה קורה? אחר כך אפסו, חכו דקה שלמה, ונסו שוב.',
+  a:'אחרי כמה שניות: הכדור חוזר במסלולו, מתקרר וטס חזרה לגובה ההתחלתי. החוקים של ניוטון הפיכים בזמן. אחרי דקה: הוא לא חוזר. ההיפוך היה מדויק עד הספרה ה-16, אבל אפילו השגיאה הזו גדלה עם הזמן עד שהמסלול חזרה אבד. כדי לחזור, צריך לכוון את כל האטומים בדיוק מושלם, וזה ״מצב אחד״ מתוך המון. זו המשמעות של אי-הפיכות: לא שאסור, אלא שבלתי סביר לגמרי.'},
+ {t:'4 · כמה קפיצים צריך כדי שיהיה כיוון לזמן?', set:{N:2,frozen:false},
+  q:'עכשיו בכדור יש 2 אטומים וקפיץ אחד. שחררו ותנו לו כמה דקות, במהירות ×15. האם הוא ״נח״ על הרצפה? נסו גם 4 ואחר כך 64.',
+  a:'עם 2 או 4 אטומים הכדור לא נח: מדי פעם האנרגיה חוזרת למרכז המסה, והוא קופץ שוב גבוה. עם 16 הוא כמעט נח, ועם 64 הוא נח כמעט מיד. אי-ההפיכות שייכת למערכות עם <b>הרבה</b> דרגות חופש. בכדור גומי אמיתי יש בערך <span class="m">10²³</span> אטומים — ולכן הוא לעולם לא קופץ חזרה לבד.'},
+ {t:'5 · ★ ספרו מצבים', set:{N:16,frozen:false,states:true},
+  q:'פתחו את ״ספרו מצבים״ ושחררו. כמה תמונות שונות של חלוקת האנרגיה המערכת עוברת בדקה? כמה תמונות אפשריות בכלל? בכמה מהן הכדור למעלה? ואחר כך: אותו דבר עם 2 אטומים.',
+  a:'עם 16 אטומים יש בערך <span class="m">1.6×10¹⁰</span> דרכים לחלק 20 מנות אנרגיה, ורק באחת מהן הכול בגובה. גם אחרי כמה דקות הכדור לא חוזר לשם אפילו פעם אחת. עם 2 אטומים יש רק <span class="m">1,771</span> דרכים, ובמהירות ×15 המונה ״חזר לשם״ זז תוך פחות מדקה. אם כל התמונות סבירות באותה מידה, המערכת פשוט נמצאת כמעט תמיד במקום שיש בו הכי הרבה תמונות. זה כל ה״סוד״ של החוק השני — ושל המטבח שמתבלגן לבד.'},
+ {t:'6 · אתגר: כמה זמן לחכות לנס?', set:{N:64,frozen:false,states:true},
+  q:'עם 64 אטומים, כמה תמונות אפשריות יש? נניח שהמערכת בודקת 60 תמונות שונות בשנייה. כמה זמן, בממוצע, נחכה עד שהכדור יקפוץ בעצמו חזרה לגובה ההתחלתי? השוו לגיל היקום, בערך <span class="m">1.4×10¹⁰</span> שנה.',
+  a:'<span class="m">C(85, 20) ≈ 1.4×10¹⁹</span> תמונות. בקצב של 60 בשנייה, זה בערך <span class="m">7×10⁹</span> שנה — חצי מגיל היקום, לכדור של 64 אטומים בלבד ו-20 מנות אנרגיה. עם <span class="m">10²³</span> אטומים, המספר כל כך גדול שאין לו שום משמעות פיזיקלית. ״בלתי סביר״ בתרמודינמיקה שווה ״לא יקרה אף פעם״.'}
+];
+function renderTasks(){
+  $('tasks').innerHTML=TASKS.map((T,i)=>`<div class="card task"><h3>${T.t}</h3><p>${T.q}</p>
+    <div class="btnrow"><button class="bigbtn" data-run="${i}">הגדירו והפעילו</button><button class="resetb" data-ans="${i}">מה רואים?</button></div>
+    <div class="note" id="ans-${i}" style="display:none">${T.a}</div></div>`).join('');
+  document.querySelectorAll('[data-run]').forEach(b=>b.addEventListener('click',()=>runTask(+b.dataset.run)));
+  document.querySelectorAll('[data-ans]').forEach(b=>b.addEventListener('click',()=>{ const el=$('ans-'+b.dataset.ans), on=el.style.display==='block'; el.style.display=on?'none':'block'; b.textContent=on?'מה רואים?':'הסתר'; }));
+}
+function runTask(i){ const T=TASKS[i]; ST.N=T.set.N; ST.frozenReq=!!T.set.frozen; setSeg('nseg','n',String(ST.N)); setFreezeBtn();
+  if(T.set.states && !ST.showStates) toggleStates();
+  resetSim(); $('taskbar').style.display='flex'; $('taskbar-t').innerHTML='<b>'+T.t+'</b> · '+T.q; selectTab('a'); }
+
+/* ============================================================
+   חיווט
+   ============================================================ */
+const DRAW={a:drawAll,b:()=>{},c:()=>{}};
+let CUR='a';
+function selectTab(key){ const b=document.querySelector('.tabs [role=tab][data-tab="'+key+'"]'); if(b) b.click(); }
+document.querySelectorAll('.tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
+  CUR=b.dataset.tab; if(CUR!=='a') stop();
+  document.querySelectorAll('.tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.id==='pane-'+CUR));
+  requestAnimationFrame(()=>DRAW[CUR]());
+}));
+function setSeg(id,attr,val){ document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed', x.dataset[attr]===val?'true':'false')); }
+function segWire(id,attr,on){ document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{ setSeg(id,attr,b.dataset[attr]); on(b.dataset[attr]); })); }
+function setFreezeBtn(){ const b=$('freeze'); b.setAttribute('aria-pressed',ST.frozenReq?'true':'false'); b.textContent='הקפאת הקפיצים: '+(ST.frozenReq?'פועלת':'כבויה'); }
+function toggleStates(){ ST.showStates=!ST.showStates; $('states').style.display=ST.showStates?'block':'none'; $('statesb').setAttribute('aria-pressed',ST.showStates?'true':'false');
+  $('statesb').textContent=ST.showStates?'★ הסתירו את ספירת המצבים':'★ ספרו מצבים'; if(ST.showStates) requestAnimationFrame(drawStates); }
+$('go').addEventListener('click',()=>{ if(ST.run) stop(); else start(); });
+$('reset').addEventListener('click',resetSim);
+$('rev').addEventListener('click',doReverse);
+$('freeze').addEventListener('click',()=>{ ST.frozenReq=!ST.frozenReq; setFreezeBtn(); resetSim(); });
+segWire('nseg','n',v=>{ ST.N=+v; resetSim(); });
+segWire('spseg','s',v=>{ ST.speed=+v; });
+$('K').addEventListener('input',()=>{ ST.K=+$('K').value; $('Kv').textContent='K = '+ST.K.toFixed(1); resetSim(); });
+$('G').addEventListener('input',()=>{ ST.G=+$('G').value; $('Gv').textContent='G = '+ST.G.toFixed(4); resetSim(); });
+$('statesb').addEventListener('click',toggleStates);
+$('taskbar-back').addEventListener('click',()=>{ $('taskbar').style.display='none'; selectTab('b'); });
+$('themeb').addEventListener('click', function(){ const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', dark?'light':'dark'); this.textContent=dark?'מצב כהה':'מצב בהיר'; drawAll(); });
+addEventListener('resize', ()=>DRAW[CUR]());
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stop(); });
+renderTasks(); resetSim();
+(function(){ const k=(location.hash||'').replace('#',''); if(DRAW[k] && k!=='a') selectTab(k); })();
+</script>
+<script>
+/* גשר למצגת: המצגת שולחת איזה ניסוי להכין, והמקש S או Escape מחזיר למצגת */
+addEventListener('message',e=>{ const d=e.data; if(!d||!d.deck) return;
+  try{
+    if(d.deck==='stop'){ stop(); return; }
+    if(d.deck==='show'){ requestAnimationFrame(()=>DRAW[CUR]()); return; }
+    if(d.deck!=='go') return;
+    selectTab('a'); $('taskbar').style.display='none';
+    ST.N=d.N; setSeg('nseg','n',String(d.N));
+    ST.frozenReq=!!d.frozen; setFreezeBtn();
+    if(!!d.states!==ST.showStates) toggleStates();
+    ST.speed=d.speed||1; setSeg('spseg','s',String(ST.speed));
+    resetSim(); scrollTo(0,0);
+    if(d.go) start();
+  }catch(err){ console.error(err); } });
+addEventListener('keydown',e=>{ if(window.parent===window) return;
+  if(e.key==='s'||e.key==='S'||e.key==='ד'||e.key==='Escape'){ e.preventDefault(); window.parent.postMessage({sim:'close'},'*'); } });
+</script>
+</body>
+</html>
